@@ -48,7 +48,17 @@ public class MembersEntity {
     @Column(name = "confirm")
     private boolean confirm;
 
+    @ManyToOne
+    @JoinColumn(name = "addresses_id")
+    private AddressesEntity addresses_id;
 
+    public AddressesEntity getAddresses_id() {
+        return addresses_id;
+    }
+
+    public void setAddress_id(AddressesEntity address_id) {
+        this.addresses_id = address_id;
+    }
 
     public int getId() {
         return id;

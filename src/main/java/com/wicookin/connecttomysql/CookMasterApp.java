@@ -17,12 +17,10 @@ import javafx.stage.Stage;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
-
+import java.sql.Time;
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -46,6 +44,14 @@ public class CookMasterApp extends Application {
     private Chart chart3 = null;
     private Chart chart4  = null;
     private Chart chart5 = null;
+
+    private Chart chart6 = null;
+
+    private Chart chart7 = null;
+
+    private Chart chart8 = null;
+
+    private Chart chart9 = null;
 
     public static void main(String[] args) {
         launch(args);
@@ -148,6 +154,8 @@ public class CookMasterApp extends Application {
                 typeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
 
 
+
+
                 // Dans votre méthode start, créez un nouveau bouton pour ouvrir la fenêtre graphique
                 Button statsButton = new Button("Show Members Statistics");
                 statsButton.setOnAction(event -> showStatisticsWindow());
@@ -166,8 +174,8 @@ public class CookMasterApp extends Application {
                 exportMenuItem.setOnAction(e -> {
                     PDFGenerator pdfGenerator = new PDFGenerator();
                     List<Chart> charts = Arrays.asList(chart1, chart2, chart3);
-                    List<Chart> charts2 = Arrays.asList( chart4);
-                    List<Chart> charts3 = Arrays.asList(chart5);
+                    List<Chart> charts2 = Arrays.asList( chart6,chart4, chart7);
+                    List<Chart> charts3 = Arrays.asList(chart5,chart8,chart9);
                     pdfGenerator.generatePDF(charts,charts2,charts3);
 
                 });
@@ -185,7 +193,25 @@ public class CookMasterApp extends Application {
                 TableColumn<EventsEntity, String> dateColumn = new TableColumn<>("Date");
                 dateColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
 
+                TableColumn<EventsEntity, Time> timeColumn = new TableColumn<>("Start Time");
+                timeColumn.setCellValueFactory(new PropertyValueFactory<>("startTime"));
 
+                // Use a custom cell factory to format the time
+                timeColumn.setCellFactory(column -> {
+                    return new TableCell<EventsEntity, Time>() {
+                        @Override
+                        protected void updateItem(Time item, boolean empty) {
+                            super.updateItem(item, empty);
+
+                            if (item == null || empty) {
+                                setText(null);
+                            } else {
+                                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSSSSS");
+                                setText(sdf.format(item));
+                            }
+                        }
+                    };
+                });
 
 
                 TableColumn<ServicesEntity, String> serviceNameColumn = new TableColumn<>("Service Name");
@@ -203,13 +229,14 @@ public class CookMasterApp extends Application {
 
                 // Add columns to the tables
                 membersTable.getColumns().addAll(lastNameColumn, firstNameColumn, emailColumn,genderColumn, datebColumn, typeColumn);
-                eventsTable.getColumns().addAll(nameColumn, descriptionColumn, dateColumn); // add columns to new table
+                eventsTable.getColumns().addAll(nameColumn, descriptionColumn, dateColumn,timeColumn); // add columns to new table
                 servicesTable.getColumns().addAll(serviceNameColumn, serviceDescriptionColumn, servicePriceColumn);
 
                 // Retrieve data and set it as table items
                 Platform.runLater(() -> {
                     membersTable.setItems(retrieveMembersData());
                     eventsTable.setItems(retrieveEventsData()); // retrieve data for new table
+                    servicesTable.setItems(retrieveServicesData());
                 });
 
 
@@ -334,46 +361,123 @@ public class CookMasterApp extends Application {
     }
 
     private void showEventsStatisticsWindow() {
-        Stage stage = new Stage();
-        stage.setTitle("Events Statistics");
 
-        // Count events by member
-        Map<String, Long> eventCounts = StreamSupport.stream(eventRepository.findAll().spliterator(), false)
-                .collect(Collectors.groupingBy(e -> e.getMember_id().getFirstname() + " " + e.getMember_id().getLastname(), Collectors.counting()));
+            Stage stage = new Stage();
+            stage.setTitle("Events Statistics");
 
-        // Create event count bar chart
-        CategoryAxis eventXAxis = new CategoryAxis();
-        eventXAxis.setLabel("Member");
+            // Count events by date
+            Map<String, Long> eventCounts = StreamSupport.stream(eventRepository.findAll().spliterator(), false)
+                    .collect(Collectors.groupingBy(e -> e.getDate().toString(), Collectors.counting())); // convert Date to String
 
-        NumberAxis eventYAxis = new NumberAxis();
-        eventYAxis.setLabel("Event Count");
+            // Count events by time
+            Map<String, Long> eventTimeCounts = StreamSupport.stream(eventRepository.findAll().spliterator(), false)
+                    .collect(Collectors.groupingBy(e -> e.getStartTime().toString(), Collectors.counting())); // convert Time to String
 
-        BarChart<String, Number> eventChart = new BarChart<>(eventXAxis, eventYAxis);
-        eventChart.setTitle("Events by Member");
+            // Count events by name
+            Map<String, Long> eventNameCounts = StreamSupport.stream(eventRepository.findAll().spliterator(), false)
+                    .collect(Collectors.groupingBy(EventsEntity::getName, Collectors.counting()));
 
-        XYChart.Series<String, Number> eventSeries = new XYChart.Series<>();
-        eventCounts.forEach((member, count) -> eventSeries.getData().add(new XYChart.Data<>(member, count)));
+            // Create event count bar chart
+            CategoryAxis eventXAxis = new CategoryAxis();
+            eventXAxis.setLabel("Date");
 
-        eventChart.getData().add(eventSeries);
+            NumberAxis eventYAxis = new NumberAxis();
+            eventYAxis.setLabel("Event Count");
 
-        chart4 = eventChart;
+            BarChart<String, Number> eventChart = new BarChart<>(eventXAxis, eventYAxis);
+            eventChart.setTitle("Schedule Frequency");
 
-        VBox layout = new VBox(eventChart);
-        layout.setSpacing(10);
+            XYChart.Series<String, Number> eventSeries = new XYChart.Series<>();
+            eventCounts.forEach((date, count) -> eventSeries.getData().add(new XYChart.Data<>(date, count)));
 
-        Scene scene = new Scene(layout, 800, 600);
-        stage.setScene(scene);
-        stage.show();
+            eventChart.getData().add(eventSeries);
+
+            // Create event count bar chart
+            CategoryAxis eventXaxisTime = new CategoryAxis();
+            eventXaxisTime.setLabel("Time");
+
+            NumberAxis eventYaxisTime = new NumberAxis();
+            eventYaxisTime.setLabel("Event Count");
+
+            BarChart<String, Number> eventtimeChart = new BarChart<>(eventXaxisTime, eventYaxisTime);
+            eventtimeChart.setTitle("Schedule Time Frequency");
+
+            XYChart.Series<String, Number> eventTimeSeries = new XYChart.Series<>();
+            eventTimeCounts.forEach((time, count) -> eventTimeSeries.getData().add(new XYChart.Data<>(time, count)));
+
+            eventtimeChart.getData().add(eventTimeSeries);
+
+            // Create event type pie chart
+            ObservableList<PieChart.Data> eventTypeData = FXCollections.observableArrayList();
+            eventNameCounts.forEach((name, count) -> eventTypeData.add(new PieChart.Data(name, count)));
+
+            PieChart eventTypeChart = new PieChart(eventTypeData);
+            eventTypeChart.setTitle("Tasting Type");
+
+            chart4 = eventChart;
+            chart6 = eventTypeChart;
+            chart7 = eventtimeChart;
+
+            VBox layout = new VBox(eventChart, eventTypeChart, eventtimeChart);
+            layout.setSpacing(10);
+
+            Scene scene = new Scene(layout, 800, 600);
+            stage.setScene(scene);
+            stage.show();
+
+
+
+
+
+
     }
 
     private void showServiceStatisticsWindow() {
-        /*
+
         Stage stage = new Stage();
         stage.setTitle("Service Statistics");
+
+        // Count services by price
+        Map<String, Long> servicePriceCounts = StreamSupport.stream(serviceRepository.findAll().spliterator(), false)
+                .collect(Collectors.groupingBy(s -> s.getPrice().toString(), Collectors.counting())); // convert Price to String
+
+        // Count services by name
+        Map<String, Long> serviceNameCounts = StreamSupport.stream(serviceRepository.findAll().spliterator(), false)
+                .collect(Collectors.groupingBy(s -> s.getName().toString(), Collectors.counting())); // convert Name to String
 
         // Count services by category
         Map<String, Long> serviceCounts = StreamSupport.stream(serviceRepository.findAll().spliterator(), false)
                 .collect(Collectors.groupingBy(s -> s.getCategory_id().getName(), Collectors.counting()));
+
+        // Create service count bar chart
+        CategoryAxis servicexaxis = new CategoryAxis();
+        servicexaxis.setLabel("Price");
+
+        NumberAxis serviceyaxis = new NumberAxis();
+        serviceyaxis.setLabel("Name Count");
+
+        BarChart<String, Number> serviceNameChart = new BarChart<>(servicexaxis, serviceyaxis);
+        serviceNameChart.setTitle("Services by Name");
+
+        XYChart.Series<String, Number> serviceNameSeries = new XYChart.Series<>();
+        serviceNameCounts.forEach((name, count) -> serviceNameSeries.getData().add(new XYChart.Data<>(name, count)));
+
+        serviceNameChart.getData().add(serviceNameSeries);
+
+        // Create service count bar chart
+        CategoryAxis serviceXaxis = new CategoryAxis();
+        serviceXaxis.setLabel("Price");
+
+        NumberAxis serviceYaxis = new NumberAxis();
+        serviceYaxis.setLabel("Price Count");
+
+        BarChart<String, Number> servicePriceChart = new BarChart<>(serviceXaxis, serviceYaxis);
+        servicePriceChart.setTitle("Services by Price");
+
+        XYChart.Series<String, Number> servicePriceSeries = new XYChart.Series<>();
+        servicePriceCounts.forEach((price, count) -> servicePriceSeries.getData().add(new XYChart.Data<>(price, count)));
+
+        servicePriceChart.getData().add(servicePriceSeries);
 
         // Create service count bar chart
         CategoryAxis serviceXAxis = new CategoryAxis();
@@ -391,13 +495,15 @@ public class CookMasterApp extends Application {
         serviceChart.getData().add(serviceSeries);
 
         chart5 = serviceChart;
+        chart8 = servicePriceChart;
+        chart9 = serviceNameChart;
 
-        VBox layout = new VBox(serviceChart);
+        VBox layout = new VBox(serviceChart,servicePriceChart,serviceNameChart);
         layout.setSpacing(10);
 
         Scene scene = new Scene(layout, 800, 600);
         stage.setScene(scene);
-        stage.show();*/
+        stage.show();
     }
 
 }

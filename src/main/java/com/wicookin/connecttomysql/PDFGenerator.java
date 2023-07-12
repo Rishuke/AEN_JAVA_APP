@@ -23,6 +23,7 @@ public class PDFGenerator {
     public void generatePDF(List<Chart> charts,List<Chart> charts2,List<Chart> charts3) {
         PDDocument document = new PDDocument();
         try {
+
             PDPage page = new PDPage();
             document.addPage(page);
             int yPosition = 600; // Initiate y position
