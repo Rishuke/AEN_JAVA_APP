@@ -1,5 +1,8 @@
 package com.wicookin.connecttomysql;
 
+
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -56,11 +59,15 @@ public class ConnecttomysqlApplication {
 
         System.out.println("\n");
 
+
         ServiceRepository serviceRepository = context.getBean(ServiceRepository.class);
         Iterable<ServicesEntity> services = serviceRepository.findAll();
         for (ServicesEntity service : services) {
-            System.out.println(service.getId());
+            System.out.println(service.getName());
+
         }
+
+
     }
 
 }

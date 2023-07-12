@@ -10,9 +10,7 @@ public class AddressesEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne
-    @JoinColumn(name = "member_id")
-    private MembersEntity member_id;
+
 
     @Column(name="street")
     private String street;
@@ -34,13 +32,7 @@ public class AddressesEntity {
         this.id = id;
     }
 
-    public MembersEntity getMember_id() {
-        return member_id;
-    }
 
-    public void setMember_id(MembersEntity member_id) {
-        this.member_id = member_id;
-    }
 
     public String getStreet() {
         return street;

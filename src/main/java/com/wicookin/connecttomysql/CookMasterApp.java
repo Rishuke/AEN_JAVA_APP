@@ -165,8 +165,11 @@ public class CookMasterApp extends Application {
 
                 exportMenuItem.setOnAction(e -> {
                     PDFGenerator pdfGenerator = new PDFGenerator();
-                    List<Chart> charts = Arrays.asList(chart1, chart2, chart3, chart4, chart5);
-                    pdfGenerator.generatePDF(charts);
+                    List<Chart> charts = Arrays.asList(chart1, chart2, chart3);
+                    List<Chart> charts2 = Arrays.asList( chart4);
+                    List<Chart> charts3 = Arrays.asList(chart5);
+                    pdfGenerator.generatePDF(charts,charts2,charts3);
+
                 });
 
                 // Ajoutez le bouton à votre layout principal
@@ -364,6 +367,7 @@ public class CookMasterApp extends Application {
     }
 
     private void showServiceStatisticsWindow() {
+        /*
         Stage stage = new Stage();
         stage.setTitle("Service Statistics");
 
@@ -393,7 +397,7 @@ public class CookMasterApp extends Application {
 
         Scene scene = new Scene(layout, 800, 600);
         stage.setScene(scene);
-        stage.show();
+        stage.show();*/
     }
 
 }

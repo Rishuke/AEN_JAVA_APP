@@ -11,16 +11,6 @@ public class ServicesEntity {
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-
-    @Column(name="name")
-    private String name;
-
-    @Column(name="description")
-    private String description;
-
-    @Column(columnDefinition = "DECIMAL(10,2)")
-    private BigDecimal price;
-
     @ManyToOne
     @JoinColumn(name = "category_id")
     private CategoriesEntity category_id;
@@ -29,36 +19,21 @@ public class ServicesEntity {
     @JoinColumn(name = "member_id")
     private MembersEntity member_id;
 
+    @Column(columnDefinition = "DECIMAL(10,2)")
+    private BigDecimal price;
+
+    @Column(name="description")
+    private String description;
+
+    @Column(name="name")
+    private String name;
+
     public int getId() {
         return id;
     }
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
     }
 
     public CategoriesEntity getCategory_id() {
@@ -77,5 +52,27 @@ public class ServicesEntity {
         this.member_id = member_id;
     }
 
+    public BigDecimal getPrice() {
+        return price;
+    }
 
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }
