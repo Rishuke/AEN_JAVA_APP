@@ -24,7 +24,57 @@ public class PlanificationEntity {
     private ActivitiesEntity activite_id;
 
     @ManyToOne
+    @JoinColumn(name = "avion_id")
+    private AvionEntity avion_id;
+    @ManyToOne
     @JoinColumn(name = "ulm_id")
     private UlmEntity ulm_id;
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public Time getHeure() {
+        return heure;
+    }
+
+    public void setHeure(Time heure) {
+        this.heure = heure;
+    }
+
+    public ActivitiesEntity getActivite_id() {
+        return activite_id;
+    }
+
+    public void setActivite_id(ActivitiesEntity activite_id) {
+        this.activite_id = activite_id;
+    }
+
+    public AvionEntity getAvion_id() {
+        return avion_id;
+    }
+
+    public void setAvion_id(AvionEntity avion_id) {
+        this.avion_id = avion_id;
+    }
+
+    public UlmEntity getUlm_id() {
+        return ulm_id;
+    }
+
+    public void setUlm_id(UlmEntity ulm_id) {
+        this.ulm_id = ulm_id;
+    }
 }
