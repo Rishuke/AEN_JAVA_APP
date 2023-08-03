@@ -44,11 +44,16 @@ public class AENApp extends Application {
     private ConfigurableApplicationContext context;
     private MemberRepository memberRepository;
     private ActivityRepository activityRepository;
+
+    private PlanificationRepository planificationRepository;
+
     private FormationRepository formationRepository;
 
 
     private TableView<MembersEntity> membersTable;
     private TableView<ActivitiesEntity> activitiesTable;
+
+    private TableView<PlanificationEntity> planificationsTable;
 
     private TableView<FormationEntity> formationsTable;
 
@@ -82,6 +87,7 @@ public class AENApp extends Application {
 
         memberRepository = context.getBean(MemberRepository.class);
         activityRepository = context.getBean(ActivityRepository.class);
+        planificationRepository = context.getBean(PlanificationRepository.class);
         formationRepository = context.getBean(FormationRepository.class);
     }
 
@@ -147,6 +153,7 @@ public class AENApp extends Application {
                 // Initialize the table views
                 membersTable = new TableView<>();
                 activitiesTable = new TableView<>();
+                planificationsTable = new TableView<>();
                 formationsTable = new TableView<>();
 
                 // Set up columns for members
@@ -180,23 +187,27 @@ public class AENApp extends Application {
 
                 // Dans votre méthode start, créez un nouveau bouton pour ouvrir la fenêtre graphique
                 Button statsButton = new Button("Show Members Statistics");
-                statsButton.setOnAction(event -> {
-                    try {
-                        showStatisticsWindow();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+                /*statsButton3.setOnAction(event -> showServiceStatisticsWindow());*/   // moooooooooooooooodif
+
 
                 // Dans votre méthode start, créez un nouveau bouton pour ouvrir la fenêtre graphique
                 Button statsButton2 = new Button("Show Activities Statistics");
                 /*statsButton2.setOnAction(event -> showEventsStatisticsWindow());*/ //moooooooooooooodif
 
+                Button calendarButton = new Button("Show Calendar Statistics");
+                calendarButton.setOnAction(event -> {
+                    try {
+                        showPlanificationsWindow();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+
                 Button statsButton3 = new Button("Show Formations Statistics");
                 /*statsButton3.setOnAction(event -> showServiceStatisticsWindow());*/   // moooooooooooooooodif
 
                 // Add the tables and the button to a VBox
-                VBox layout = new VBox(membersTable, statsButton, activitiesTable,statsButton2, formationsTable, statsButton3);
+                VBox layout = new VBox(membersTable, statsButton, activitiesTable,statsButton2,planificationsTable,calendarButton, formationsTable, statsButton3);
                 layout.setSpacing(10);  // Set spacing between elements in the VBox
 
                 /*exportMenuItem.setOnAction(e -> {
@@ -211,7 +222,7 @@ public class AENApp extends Application {
                 // Ajoutez le bouton à votre layout principal
                 mainLayout.setCenter(layout);
 
-                // Set up columns for events
+                // Set up columns for activities
                 TableColumn<ActivitiesEntity, String> activitenomColumn = new TableColumn<>("Nom d'activité");
                 activitenomColumn.setCellValueFactory(new PropertyValueFactory<>("nom_activite"));
 
@@ -227,6 +238,41 @@ public class AENApp extends Application {
 
 
 
+                // Set up columns for planifications
+                TableColumn<PlanificationEntity, String> datepColumn = new TableColumn<>("Date de planification");
+                datepColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
+
+                TableColumn<PlanificationEntity, Time> timepColumn = new TableColumn<>("Heure de planification");
+                timepColumn.setCellValueFactory(new PropertyValueFactory<>("heure"));
+
+                TableColumn<PlanificationEntity, Integer> activitepColumn = new TableColumn<>("Activite");
+                activitepColumn.setCellValueFactory(new PropertyValueFactory<>("activite_id"));
+
+                TableColumn<PlanificationEntity, Integer> avionpColumn = new TableColumn<>("Avion");
+                avionpColumn.setCellValueFactory(new PropertyValueFactory<>("avion_id"));
+
+                TableColumn<PlanificationEntity, Integer> ulmpColumn = new TableColumn<>("Ulm");
+                ulmpColumn.setCellValueFactory(new PropertyValueFactory<>("ulm_id"));
+
+                // Use a custom cell factory to format the time
+                timepColumn.setCellFactory(column -> {
+                    return new TableCell<PlanificationEntity, Time>() {
+                        @Override
+                        protected void updateItem(Time item, boolean empty) {
+                            super.updateItem(item, empty);
+
+                            if (item == null || empty) {
+                                setText(null);
+                            } else {
+                                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSSSSS");
+                                setText(sdf.format(item));
+                            }
+                        }
+                    };
+                });
+
+
+                // Set up columns for formations
                 TableColumn<FormationEntity, String> formationnomColumn = new TableColumn<>("Nom de la formation");
                 formationnomColumn.setCellValueFactory(new PropertyValueFactory<>("nom"));
 
@@ -268,13 +314,15 @@ public class AENApp extends Application {
                 // Add columns to the tables
                 membersTable.getColumns().addAll(nomColumn, prenomColumn, emailColumn,genreColumn, datenColumn, typeColumn);
                 activitiesTable.getColumns().addAll(activitenomColumn,  clientColumn,piloteColumn); // add columns to new table
+                planificationsTable.getColumns().addAll(datepColumn,timepColumn,activitepColumn,avionpColumn,ulmpColumn);
                 formationsTable.getColumns().addAll(formationnomColumn, datedColumn, datefColumn,timeColumn,clientfColumn,formateurfColumn);
 
                 // Retrieve data and set it as table items
                 Platform.runLater(() -> {
                     membersTable.setItems(retrieveMembersData());
-                    activitiesTable.setItems(retrieveEventsData()); // retrieve data for new table
-                    formationsTable.setItems(retrieveServicesData());
+                    activitiesTable.setItems(retrieveActivitiesData()); // retrieve data for new table
+                    planificationsTable.setItems(retrievePlanificationsData());
+                    formationsTable.setItems(retrieveFormationsData());
                 });
 
 
@@ -311,7 +359,7 @@ public class AENApp extends Application {
         );
     }
 
-    private ObservableList<ActivitiesEntity> retrieveEventsData() { // new method for retrieving event data
+    private ObservableList<ActivitiesEntity> retrieveActivitiesData() { // new method for retrieving event data
         Iterable<ActivitiesEntity> activities = activityRepository.findAll();
         return FXCollections.observableArrayList(
                 StreamSupport.stream(activities.spliterator(), false)
@@ -319,7 +367,15 @@ public class AENApp extends Application {
         );
     }
 
-    private ObservableList<FormationEntity> retrieveServicesData() {
+    private ObservableList<PlanificationEntity> retrievePlanificationsData() { // new method for retrieving event data
+        Iterable<PlanificationEntity> planifications = planificationRepository.findAll();
+        return FXCollections.observableArrayList(
+                StreamSupport.stream(planifications.spliterator(), false)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    private ObservableList<FormationEntity> retrieveFormationsData() {
         Iterable<FormationEntity> formations = formationRepository.findAll();
         return FXCollections.observableArrayList(
                 StreamSupport.stream(formations.spliterator(), false)
@@ -336,7 +392,7 @@ public class AENApp extends Application {
         return "debian".equals(username) && "Wicookin2023".equals(password);
     }
 
-    private void showStatisticsWindow() throws IOException{
+    private void showPlanificationsWindow() throws IOException{
         Stage stage = new Stage();
         FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("/Calendar.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
