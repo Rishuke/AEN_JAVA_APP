@@ -4,6 +4,9 @@ package com.aen.connecttomysql;
 import com.wicookin.connecttomysql.EventsEntity;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -13,6 +16,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -157,6 +161,9 @@ public class AENApp extends Application {
                 formationsTable = new TableView<>();
 
                 // Set up columns for members
+                TableColumn<MembersEntity, Integer> idmColumn = new TableColumn<>("Member_ID");
+                idmColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+
                 TableColumn<MembersEntity, String> nomColumn = new TableColumn<>("Nom");
                 nomColumn.setCellValueFactory(new PropertyValueFactory<>("nom"));
 
@@ -189,10 +196,27 @@ public class AENApp extends Application {
                 Button statsButton = new Button("Show Members Statistics");
                 /*statsButton3.setOnAction(event -> showServiceStatisticsWindow());*/   // moooooooooooooooodif
 
+                Button AddButton = new Button("Add");
+                AddButton.setOnAction(event -> showAddWindow("Member"));
+
+                Button UpdateButton = new Button("Update");
+                UpdateButton.setOnAction(event -> showUpdateWindow("Member"));
+
+                Button DeleteButton = new Button("Delete");
+                DeleteButton.setOnAction(event -> showDeleteWindow("Member"));
 
                 // Dans votre méthode start, créez un nouveau bouton pour ouvrir la fenêtre graphique
                 Button statsButton2 = new Button("Show Activities Statistics");
                 /*statsButton2.setOnAction(event -> showEventsStatisticsWindow());*/ //moooooooooooooodif
+
+                Button AddButton2 = new Button("Add");
+                AddButton2.setOnAction(event -> showAddWindow("Activity"));
+
+                Button UpdateButton2 = new Button("Update");
+                UpdateButton2.setOnAction(event -> showUpdateWindow("Activity"));
+
+                Button DeleteButton2 = new Button("Delete");
+                DeleteButton2.setOnAction(event -> showDeleteWindow("Activity"));
 
                 Button calendarButton = new Button("Show Calendar Statistics");
                 calendarButton.setOnAction(event -> {
@@ -203,11 +227,40 @@ public class AENApp extends Application {
                     }
                 });
 
+                Button AddButton3 = new Button("Add");
+                AddButton3.setOnAction(event -> showAddWindow("Planification"));
+
+                Button UpdateButton3 = new Button("Update");
+                UpdateButton3.setOnAction(event -> showUpdateWindow("Planification"));
+
+                Button DeleteButton3 = new Button("Delete");
+                DeleteButton3.setOnAction(event -> showDeleteWindow("Planification"));
+
                 Button statsButton3 = new Button("Show Formations Statistics");
                 /*statsButton3.setOnAction(event -> showServiceStatisticsWindow());*/   // moooooooooooooooodif
 
+                Button AddButton4 = new Button("Add");
+                AddButton4.setOnAction(event -> showAddWindow("Formation"));
+                Button UpdateButton4 = new Button("Update");
+                UpdateButton4.setOnAction(event -> showUpdateWindow("Formation"));
+
+                Button DeleteButton4 = new Button("Delete");
+                DeleteButton4.setOnAction(event -> showDeleteWindow("Formation"));
+
+                HBox buttonBox1 = new HBox(statsButton, AddButton, UpdateButton, DeleteButton);
+                buttonBox1.setSpacing(10); // Set spacing between buttons
+
+                HBox buttonBox2 = new HBox(statsButton2, AddButton2, UpdateButton2, DeleteButton2);
+                buttonBox2.setSpacing(10); // Set spacing between buttons
+
+                HBox buttonBox3 = new HBox(calendarButton, AddButton3, UpdateButton3, DeleteButton3);
+                buttonBox3.setSpacing(10); // Set spacing between buttons
+
+                HBox buttonBox4 = new HBox(statsButton3, AddButton4, UpdateButton4, DeleteButton4);
+                buttonBox4.setSpacing(10); // Set spacing between buttons
+
                 // Add the tables and the button to a VBox
-                VBox layout = new VBox(membersTable, statsButton, activitiesTable,statsButton2,planificationsTable,calendarButton, formationsTable, statsButton3);
+                VBox layout = new VBox(membersTable, buttonBox1, activitiesTable, buttonBox2, planificationsTable, buttonBox3, formationsTable, buttonBox4);
                 layout.setSpacing(10);  // Set spacing between elements in the VBox
 
                 /*exportMenuItem.setOnAction(e -> {
@@ -223,6 +276,9 @@ public class AENApp extends Application {
                 mainLayout.setCenter(layout);
 
                 // Set up columns for activities
+                TableColumn<ActivitiesEntity, Integer> idaColumn = new TableColumn<>("Activite_ID");
+                idaColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+
                 TableColumn<ActivitiesEntity, String> activitenomColumn = new TableColumn<>("Nom d'activité");
                 activitenomColumn.setCellValueFactory(new PropertyValueFactory<>("nom_activite"));
 
@@ -230,15 +286,22 @@ public class AENApp extends Application {
                 //descriptionColumn.setCellValueFactory(new PropertyValueFactory<>("description"));
 
                 TableColumn<ActivitiesEntity, Integer> clientColumn = new TableColumn<>("Client_ID");
-                clientColumn.setCellValueFactory(new PropertyValueFactory<>("client_id"));
+                clientColumn.setCellValueFactory(cellData ->
+                        new ReadOnlyObjectWrapper<>(cellData.getValue().getClient_id().getId()));
 
                 TableColumn<ActivitiesEntity, Integer> piloteColumn = new TableColumn<>("Pilote_ID");
-                piloteColumn.setCellValueFactory(new PropertyValueFactory<>("pilote_id"));
+                piloteColumn.setCellValueFactory(cellData -> {
+                    MembersEntity pilote = cellData.getValue().getPilote_id();
+                    return pilote != null ? new ReadOnlyObjectWrapper<>(pilote.getId()) : new ReadOnlyObjectWrapper<>(null);
+                });
 
 
 
 
                 // Set up columns for planifications
+                TableColumn<PlanificationEntity, Integer> idpColumn = new TableColumn<>("Planification_ID");
+                idpColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+
                 TableColumn<PlanificationEntity, String> datepColumn = new TableColumn<>("Date de planification");
                 datepColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
 
@@ -246,13 +309,20 @@ public class AENApp extends Application {
                 timepColumn.setCellValueFactory(new PropertyValueFactory<>("heure"));
 
                 TableColumn<PlanificationEntity, Integer> activitepColumn = new TableColumn<>("Activite");
-                activitepColumn.setCellValueFactory(new PropertyValueFactory<>("activite_id"));
+                activitepColumn.setCellValueFactory(cellData ->
+                        new ReadOnlyObjectWrapper<>(cellData.getValue().getActivite_id().getId()));
 
                 TableColumn<PlanificationEntity, Integer> avionpColumn = new TableColumn<>("Avion");
-                avionpColumn.setCellValueFactory(new PropertyValueFactory<>("avion_id"));
+                avionpColumn.setCellValueFactory(cellData -> {
+                    AvionEntity avion = cellData.getValue().getAvion_id();
+                    return avion != null ? new ReadOnlyObjectWrapper<>(avion.getId()) : new ReadOnlyObjectWrapper<>(null);
+                });
 
                 TableColumn<PlanificationEntity, Integer> ulmpColumn = new TableColumn<>("Ulm");
-                ulmpColumn.setCellValueFactory(new PropertyValueFactory<>("ulm_id"));
+                ulmpColumn.setCellValueFactory(cellData -> {
+                    UlmEntity ulm = cellData.getValue().getUlm_id();
+                    return ulm != null ? new ReadOnlyObjectWrapper<>(ulm.getId()) : new ReadOnlyObjectWrapper<>(null);
+                });
 
                 // Use a custom cell factory to format the time
                 timepColumn.setCellFactory(column -> {
@@ -273,6 +343,9 @@ public class AENApp extends Application {
 
 
                 // Set up columns for formations
+                TableColumn<FormationEntity, Integer> idfColumn = new TableColumn<>("Formation_ID");
+                idfColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+
                 TableColumn<FormationEntity, String> formationnomColumn = new TableColumn<>("Nom de la formation");
                 formationnomColumn.setCellValueFactory(new PropertyValueFactory<>("nom"));
 
@@ -286,11 +359,12 @@ public class AENApp extends Application {
                 timeColumn.setCellValueFactory(new PropertyValueFactory<>("heure_debut"));
 
                 TableColumn<FormationEntity, Integer> clientfColumn = new TableColumn<>("Client_ID");
-                clientfColumn.setCellValueFactory(new PropertyValueFactory<>("client_id"));
+                clientfColumn.setCellValueFactory(cellData ->
+                        new ReadOnlyObjectWrapper<>(cellData.getValue().getClient_id().getId()));
 
                 TableColumn<FormationEntity, Integer> formateurfColumn = new TableColumn<>("Formateur_ID");
-                formateurfColumn.setCellValueFactory(new PropertyValueFactory<>("formateur_id"));
-
+                formateurfColumn.setCellValueFactory(cellData ->
+                        new ReadOnlyObjectWrapper<>(cellData.getValue().getFormateur_id().getId()));
 
                 // Use a custom cell factory to format the time
                 timeColumn.setCellFactory(column -> {
@@ -312,10 +386,10 @@ public class AENApp extends Application {
 
 
                 // Add columns to the tables
-                membersTable.getColumns().addAll(nomColumn, prenomColumn, emailColumn,genreColumn, datenColumn, typeColumn);
-                activitiesTable.getColumns().addAll(activitenomColumn,  clientColumn,piloteColumn); // add columns to new table
-                planificationsTable.getColumns().addAll(datepColumn,timepColumn,activitepColumn,avionpColumn,ulmpColumn);
-                formationsTable.getColumns().addAll(formationnomColumn, datedColumn, datefColumn,timeColumn,clientfColumn,formateurfColumn);
+                membersTable.getColumns().addAll(idmColumn,nomColumn, prenomColumn, emailColumn,genreColumn, datenColumn, typeColumn);
+                activitiesTable.getColumns().addAll(idaColumn,activitenomColumn,  clientColumn,piloteColumn); // add columns to new table
+                planificationsTable.getColumns().addAll(idpColumn,datepColumn,timepColumn,activitepColumn,avionpColumn,ulmpColumn);
+                formationsTable.getColumns().addAll(idfColumn,formationnomColumn, datedColumn, datefColumn,timeColumn,clientfColumn,formateurfColumn);
 
                 // Retrieve data and set it as table items
                 Platform.runLater(() -> {
@@ -399,6 +473,641 @@ public class AENApp extends Application {
         stage.setTitle("Calendar!");
         stage.setScene(scene);
         stage.show();
+
+    }
+
+    private void showAddWindow(String table) {
+
+        Dialog<Pair<String, String>> addDialog = new Dialog<>();
+        addDialog.setTitle("Add !");
+
+        // Set the button types
+        ButtonType addButtonType = new ButtonType("Appliquer", ButtonBar.ButtonData.OK_DONE);
+        addDialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+
+        if(table.equals("Member")){
+                    // Create the username and password labels and fields
+                    GridPane grid = new GridPane();
+                    grid.setHgap(10);
+                    grid.setVgap(10);
+                    grid.setPadding(new Insets(20, 150, 10, 10));
+
+                    TextField userid = new TextField();
+                    userid.setPromptText("id");
+                    TextField nom = new TextField();
+                    nom.setPromptText("nom");
+                    TextField prenom = new TextField();
+                    prenom.setPromptText("prenom");
+                    TextField date_naissance = new TextField();
+                    date_naissance.setPromptText("date_naissance");
+                    TextField adresse = new TextField();
+                    adresse.setPromptText("adresse");
+                    TextField email = new TextField();
+                    email.setPromptText("email");
+                    TextField cotisation = new TextField();
+                    cotisation.setPromptText("cotisation");
+                    TextField ffa_adhesion = new TextField();
+                    ffa_adhesion.setPromptText("ffa_adhesion");
+                    TextField date_adhesion = new TextField();
+                    date_adhesion.setPromptText("date_adhesion");
+                    TextField date_renouvellement = new TextField();
+                    date_renouvellement.setPromptText("date_renouvellement");
+                    TextField type = new TextField();
+                    type.setPromptText("type");
+                    TextField telephone = new TextField();
+                    telephone.setPromptText("telephone");
+                    TextField genre = new TextField();
+                    genre.setPromptText("genre");
+                    TextField password = new TextField();
+                    password.setPromptText("password");
+
+                    // PasswordField password = new PasswordField();
+                    //password.setPromptText("Nom");
+
+                    grid.add(new Label("Member_ID:"), 0, 0);
+                    grid.add(userid, 1, 0);
+                    grid.add(new Label("Nom:"), 0, 1);
+                    grid.add(nom, 1, 1);
+                    grid.add(new Label("Prenom:"), 0, 2);
+                    grid.add(prenom, 1, 2);
+                    grid.add(new Label("Date Naissance:"), 0, 3);
+                    grid.add(date_naissance, 1, 3);
+                    grid.add(new Label("Adresse:"), 0, 4);
+                    grid.add(adresse, 1, 4);
+                    grid.add(new Label("Email:"), 0, 5);
+                    grid.add(email, 1, 5);
+                    grid.add(new Label("Cotisation:"), 0, 6);
+                    grid.add(cotisation, 1, 6);
+                    grid.add(new Label("FFA Adhesion:"), 0, 7);
+                    grid.add(ffa_adhesion, 1, 7);
+                    grid.add(new Label("Date Adhesion:"), 0, 8);
+                    grid.add(date_adhesion, 1, 8);
+                    grid.add(new Label("Date Renouvellement:"), 0, 9);
+                    grid.add(date_renouvellement, 1, 9);
+                    grid.add(new Label("Type:"), 0, 10);
+                    grid.add(type, 1, 10);
+                    grid.add(new Label("Telephone:"), 0, 11);
+                    grid.add(telephone, 1, 11);
+                    grid.add(new Label("Genre:"), 0, 12);
+                    grid.add(genre, 1, 12);
+                    grid.add(new Label("Password:"), 0, 13);
+                    grid.add(password, 1, 13);
+
+
+                    addDialog.getDialogPane().setContent(grid);
+
+                    // Convert the result to a username-password-pair when the login button is clicked
+                    addDialog.setResultConverter(dialogButton -> {
+                        if (dialogButton == addButtonType) {
+                            return new Pair<>(userid.getText(), nom.getText());
+                        }
+                        return null;
+                    });
+
+                    Optional<Pair<String, String>> result = addDialog.showAndWait();
+
+        } else if (table.equals("Activity")){
+            // Create the username and password labels and fields
+            GridPane grid = new GridPane();
+            grid.setHgap(10);
+            grid.setVgap(10);
+            grid.setPadding(new Insets(20, 150, 10, 10));
+
+            TextField activiteid = new TextField();
+            activiteid.setPromptText("id");
+            TextField nom_activite = new TextField();
+            nom_activite.setPromptText("nom_activite");
+            TextField client_id = new TextField();
+            client_id.setPromptText("client_id");
+            TextField pilote_id = new TextField();
+            pilote_id.setPromptText("pilote_id");
+
+
+            // PasswordField password = new PasswordField();
+            //password.setPromptText("Nom");
+
+            grid.add(new Label("Activite_ID:"), 0, 0);
+            grid.add(activiteid, 1, 0);
+            grid.add(new Label("Nom Activite:"), 0, 1);
+            grid.add(nom_activite, 1, 1);
+            grid.add(new Label("Client ID:"), 0, 2);
+            grid.add(client_id, 1, 2);
+            grid.add(new Label("Pilote ID:"), 0, 3);
+            grid.add(pilote_id, 1, 3);
+
+
+            addDialog.getDialogPane().setContent(grid);
+
+            // Convert the result to a username-password-pair when the login button is clicked
+            addDialog.setResultConverter(dialogButton -> {
+                if (dialogButton == addButtonType) {
+                    return new Pair<>(activiteid.getText(), nom_activite.getText());
+                }
+                return null;
+            });
+
+            Optional<Pair<String, String>> result = addDialog.showAndWait();
+
+        } else if (table.equals("Planification")){
+        // Create the username and password labels and fields
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField planificationid = new TextField();
+        planificationid.setPromptText("id");
+        TextField date = new TextField();
+        date.setPromptText("date");
+        TextField heure = new TextField();
+        heure.setPromptText("heure");
+        TextField activite_id = new TextField();
+        activite_id.setPromptText("activite_id");
+        TextField avion_id = new TextField();
+        avion_id.setPromptText("avion_id");
+        TextField ulm_id = new TextField();
+        ulm_id.setPromptText("ulm_id");
+
+
+        // PasswordField password = new PasswordField();
+        //password.setPromptText("Nom");
+            grid.add(new Label("Planification_ID:"), 0, 0);
+            grid.add(planificationid, 1, 0);
+            grid.add(new Label("Date:"), 0, 1);
+            grid.add(date, 1, 1);
+            grid.add(new Label("Heure:"), 0, 2);
+            grid.add(heure, 1, 2);
+            grid.add(new Label("Activite ID:"), 0, 3);
+            grid.add(activite_id, 1, 3);
+            grid.add(new Label("Avion ID:"), 0, 4);
+            grid.add(avion_id, 1, 4);
+            grid.add(new Label("ULM ID:"), 0, 5);
+            grid.add(ulm_id, 1, 5);
+
+
+
+            addDialog.getDialogPane().setContent(grid);
+
+        // Convert the result to a username-password-pair when the login button is clicked
+        addDialog.setResultConverter(dialogButton -> {
+            if (dialogButton == addButtonType) {
+                return new Pair<>(planificationid.getText(), date.getText());
+            }
+            return null;
+        });
+
+        Optional<Pair<String, String>> result = addDialog.showAndWait();
+
+        } else if (table.equals("Formation")){
+            // Create the username and password labels and fields
+            GridPane grid = new GridPane();
+            grid.setHgap(10);
+            grid.setVgap(10);
+            grid.setPadding(new Insets(20, 150, 10, 10));
+
+            TextField formationid = new TextField();
+            formationid.setPromptText("id");
+            TextField nom = new TextField();
+            nom.setPromptText("nom");
+            TextField date_debut = new TextField();
+            date_debut.setPromptText("date_debut");
+            TextField date_fin = new TextField();
+            date_fin.setPromptText("date_fin");
+            TextField heure_debut = new TextField();
+            heure_debut.setPromptText("heure_debut");
+            TextField heure_fin = new TextField();
+            heure_fin.setPromptText("heure_fin");
+            TextField client_id = new TextField();
+            client_id.setPromptText("client_id");
+            TextField formateur_id = new TextField();
+            formateur_id.setPromptText("formateur_id");
+
+
+
+            // PasswordField password = new PasswordField();
+            //password.setPromptText("Nom");
+            grid.add(new Label("Formation_ID:"), 0, 0);
+            grid.add(formationid, 1, 0);
+            grid.add(new Label("Nom:"), 0, 1);
+            grid.add(nom, 1, 1);
+            grid.add(new Label("Date Debut:"), 0, 2);
+            grid.add(date_debut, 1, 2);
+            grid.add(new Label("Date Fin:"), 0, 3);
+            grid.add(date_fin, 1, 3);
+            grid.add(new Label("Heure Debut:"), 0, 4);
+            grid.add(heure_debut, 1, 4);
+            grid.add(new Label("Heure Fin:"), 0, 5);
+            grid.add(heure_fin, 1, 5);
+            grid.add(new Label("Client ID:"), 0, 6);
+            grid.add(client_id, 1, 6);
+            grid.add(new Label("Formateur ID:"), 0, 7);
+            grid.add(formateur_id, 1, 7);
+
+
+
+            addDialog.getDialogPane().setContent(grid);
+
+            // Convert the result to a username-password-pair when the login button is clicked
+            addDialog.setResultConverter(dialogButton -> {
+                if (dialogButton == addButtonType) {
+                    return new Pair<>(formationid.getText(), nom.getText());
+                }
+                return null;
+            });
+
+            Optional<Pair<String, String>> result = addDialog.showAndWait();
+        }
+
+    }
+
+    private void showUpdateWindow(String table) {
+
+        Dialog<Pair<String, String>> updateDialog = new Dialog<>();
+        updateDialog.setTitle("Update !");
+
+        // Set the button types
+        ButtonType updateButtonType = new ButtonType("Appliquer", ButtonBar.ButtonData.OK_DONE);
+        updateDialog.getDialogPane().getButtonTypes().addAll(updateButtonType, ButtonType.CANCEL);
+
+        if(table.equals("Member")){
+            // Create the username and password labels and fields
+            GridPane grid = new GridPane();
+            grid.setHgap(10);
+            grid.setVgap(10);
+            grid.setPadding(new Insets(20, 150, 10, 10));
+
+            TextField userid = new TextField();
+            userid.setPromptText("id");
+            TextField nom = new TextField();
+            nom.setPromptText("nom");
+            TextField prenom = new TextField();
+            prenom.setPromptText("prenom");
+            TextField date_naissance = new TextField();
+            date_naissance.setPromptText("date_naissance");
+            TextField adresse = new TextField();
+            adresse.setPromptText("adresse");
+            TextField email = new TextField();
+            email.setPromptText("email");
+            TextField cotisation = new TextField();
+            cotisation.setPromptText("cotisation");
+            TextField ffa_adhesion = new TextField();
+            ffa_adhesion.setPromptText("ffa_adhesion");
+            TextField date_adhesion = new TextField();
+            date_adhesion.setPromptText("date_adhesion");
+            TextField date_renouvellement = new TextField();
+            date_renouvellement.setPromptText("date_renouvellement");
+            TextField type = new TextField();
+            type.setPromptText("type");
+            TextField telephone = new TextField();
+            telephone.setPromptText("telephone");
+            TextField genre = new TextField();
+            genre.setPromptText("genre");
+            TextField password = new TextField();
+            password.setPromptText("password");
+
+            // PasswordField password = new PasswordField();
+            //password.setPromptText("Nom");
+
+            grid.add(new Label("Member_ID:"), 0, 0);
+            grid.add(userid, 1, 0);
+            grid.add(new Label("Nom:"), 0, 1);
+            grid.add(nom, 1, 1);
+            grid.add(new Label("Prenom:"), 0, 2);
+            grid.add(prenom, 1, 2);
+            grid.add(new Label("Date Naissance:"), 0, 3);
+            grid.add(date_naissance, 1, 3);
+            grid.add(new Label("Adresse:"), 0, 4);
+            grid.add(adresse, 1, 4);
+            grid.add(new Label("Email:"), 0, 5);
+            grid.add(email, 1, 5);
+            grid.add(new Label("Cotisation:"), 0, 6);
+            grid.add(cotisation, 1, 6);
+            grid.add(new Label("FFA Adhesion:"), 0, 7);
+            grid.add(ffa_adhesion, 1, 7);
+            grid.add(new Label("Date Adhesion:"), 0, 8);
+            grid.add(date_adhesion, 1, 8);
+            grid.add(new Label("Date Renouvellement:"), 0, 9);
+            grid.add(date_renouvellement, 1, 9);
+            grid.add(new Label("Type:"), 0, 10);
+            grid.add(type, 1, 10);
+            grid.add(new Label("Telephone:"), 0, 11);
+            grid.add(telephone, 1, 11);
+            grid.add(new Label("Genre:"), 0, 12);
+            grid.add(genre, 1, 12);
+            grid.add(new Label("Password:"), 0, 13);
+            grid.add(password, 1, 13);
+
+
+            updateDialog.getDialogPane().setContent(grid);
+
+            updateDialog.setResultConverter(dialogButton -> {
+                if (dialogButton == updateButtonType) {
+                    return new Pair<>(userid.getText(), nom.getText());
+                }
+                return null;
+            });
+
+            Optional<Pair<String, String>> result = updateDialog.showAndWait();
+
+        } else if (table.equals("Activity")){
+            // Create the username and password labels and fields
+            GridPane grid = new GridPane();
+            grid.setHgap(10);
+            grid.setVgap(10);
+            grid.setPadding(new Insets(20, 150, 10, 10));
+
+            TextField activiteid = new TextField();
+            activiteid.setPromptText("id");
+            TextField nom_activite = new TextField();
+            nom_activite.setPromptText("nom_activite");
+            TextField client_id = new TextField();
+            client_id.setPromptText("client_id");
+            TextField pilote_id = new TextField();
+            pilote_id.setPromptText("pilote_id");
+
+
+            // PasswordField password = new PasswordField();
+            //password.setPromptText("Nom");
+
+            grid.add(new Label("Activite_ID:"), 0, 0);
+            grid.add(activiteid, 1, 0);
+            grid.add(new Label("Nom Activite:"), 0, 1);
+            grid.add(nom_activite, 1, 1);
+            grid.add(new Label("Client ID:"), 0, 2);
+            grid.add(client_id, 1, 2);
+            grid.add(new Label("Pilote ID:"), 0, 3);
+            grid.add(pilote_id, 1, 3);
+
+
+            updateDialog.getDialogPane().setContent(grid);
+
+            updateDialog.setResultConverter(dialogButton -> {
+                if (dialogButton == updateButtonType) {
+                    return new Pair<>(activiteid.getText(), nom_activite.getText());
+                }
+                return null;
+            });
+
+            Optional<Pair<String, String>> result = updateDialog.showAndWait();
+
+        } else if (table.equals("Planification")){
+            // Create the username and password labels and fields
+            GridPane grid = new GridPane();
+            grid.setHgap(10);
+            grid.setVgap(10);
+            grid.setPadding(new Insets(20, 150, 10, 10));
+
+            TextField planificationid = new TextField();
+            planificationid.setPromptText("id");
+            TextField date = new TextField();
+            date.setPromptText("date");
+            TextField heure = new TextField();
+            heure.setPromptText("heure");
+            TextField activite_id = new TextField();
+            activite_id.setPromptText("activite_id");
+            TextField avion_id = new TextField();
+            avion_id.setPromptText("avion_id");
+            TextField ulm_id = new TextField();
+            ulm_id.setPromptText("ulm_id");
+
+
+            // PasswordField password = new PasswordField();
+            //password.setPromptText("Nom");
+            grid.add(new Label("Planification_ID:"), 0, 0);
+            grid.add(planificationid, 1, 0);
+            grid.add(new Label("Date:"), 0, 1);
+            grid.add(date, 1, 1);
+            grid.add(new Label("Heure:"), 0, 2);
+            grid.add(heure, 1, 2);
+            grid.add(new Label("Activite ID:"), 0, 3);
+            grid.add(activite_id, 1, 3);
+            grid.add(new Label("Avion ID:"), 0, 4);
+            grid.add(avion_id, 1, 4);
+            grid.add(new Label("ULM ID:"), 0, 5);
+            grid.add(ulm_id, 1, 5);
+
+
+
+            updateDialog.getDialogPane().setContent(grid);
+
+
+            updateDialog.setResultConverter(dialogButton -> {
+                if (dialogButton == updateButtonType) {
+                    return new Pair<>(planificationid.getText(), date.getText());
+                }
+                return null;
+            });
+
+            Optional<Pair<String, String>> result = updateDialog.showAndWait();
+
+        } else if (table.equals("Formation")){
+            // Create the username and password labels and fields
+            GridPane grid = new GridPane();
+            grid.setHgap(10);
+            grid.setVgap(10);
+            grid.setPadding(new Insets(20, 150, 10, 10));
+
+            TextField formationid = new TextField();
+            formationid.setPromptText("id");
+            TextField nom = new TextField();
+            nom.setPromptText("nom");
+            TextField date_debut = new TextField();
+            date_debut.setPromptText("date_debut");
+            TextField date_fin = new TextField();
+            date_fin.setPromptText("date_fin");
+            TextField heure_debut = new TextField();
+            heure_debut.setPromptText("heure_debut");
+            TextField heure_fin = new TextField();
+            heure_fin.setPromptText("heure_fin");
+            TextField client_id = new TextField();
+            client_id.setPromptText("client_id");
+            TextField formateur_id = new TextField();
+            formateur_id.setPromptText("formateur_id");
+
+
+
+            // PasswordField password = new PasswordField();
+            //password.setPromptText("Nom");
+            grid.add(new Label("Formation_ID:"), 0, 0);
+            grid.add(formationid, 1, 0);
+            grid.add(new Label("Nom:"), 0, 1);
+            grid.add(nom, 1, 1);
+            grid.add(new Label("Date Debut:"), 0, 2);
+            grid.add(date_debut, 1, 2);
+            grid.add(new Label("Date Fin:"), 0, 3);
+            grid.add(date_fin, 1, 3);
+            grid.add(new Label("Heure Debut:"), 0, 4);
+            grid.add(heure_debut, 1, 4);
+            grid.add(new Label("Heure Fin:"), 0, 5);
+            grid.add(heure_fin, 1, 5);
+            grid.add(new Label("Client ID:"), 0, 6);
+            grid.add(client_id, 1, 6);
+            grid.add(new Label("Formateur ID:"), 0, 7);
+            grid.add(formateur_id, 1, 7);
+
+
+
+            updateDialog.getDialogPane().setContent(grid);
+
+            updateDialog.setResultConverter(dialogButton -> {
+                if (dialogButton == updateButtonType) {
+                    return new Pair<>(formationid.getText(), nom.getText());
+                }
+                return null;
+            });
+
+            Optional<Pair<String, String>> result = updateDialog.showAndWait();
+        }
+
+    }
+
+    private void showDeleteWindow(String table) {
+
+        Dialog<Pair<String, String>> deleteDialog = new Dialog<>();
+        deleteDialog.setTitle("Delete !");
+
+        // Set the button types
+        ButtonType deleteButtonType = new ButtonType("Appliquer", ButtonBar.ButtonData.OK_DONE);
+        deleteDialog.getDialogPane().getButtonTypes().addAll(deleteButtonType, ButtonType.CANCEL);
+
+        if(table.equals("Member")){
+            // Create the username and password labels and fields
+            GridPane grid = new GridPane();
+            grid.setHgap(10);
+            grid.setVgap(10);
+            grid.setPadding(new Insets(20, 150, 10, 10));
+
+            TextField userid = new TextField();
+            userid.setPromptText("id");
+            TextField nom = new TextField();
+            nom.setPromptText("nom");
+
+
+            // PasswordField password = new PasswordField();
+            //password.setPromptText("Nom");
+
+            grid.add(new Label("Member_ID:"), 0, 0);
+            grid.add(userid, 1, 0);
+            grid.add(new Label("Nom:"), 0, 1);
+            grid.add(nom, 1, 1);
+
+
+
+            deleteDialog.getDialogPane().setContent(grid);
+
+            deleteDialog.setResultConverter(dialogButton -> {
+                if (dialogButton == deleteButtonType) {
+                    return new Pair<>(userid.getText(), nom.getText());
+                }
+                return null;
+            });
+
+            Optional<Pair<String, String>> result = deleteDialog.showAndWait();
+
+        } else if (table.equals("Activity")){
+            // Create the username and password labels and fields
+            GridPane grid = new GridPane();
+            grid.setHgap(10);
+            grid.setVgap(10);
+            grid.setPadding(new Insets(20, 150, 10, 10));
+
+            TextField activiteid = new TextField();
+            activiteid.setPromptText("id");
+            TextField nom_activite = new TextField();
+            nom_activite.setPromptText("nom_activite");
+
+
+            // PasswordField password = new PasswordField();
+            //password.setPromptText("Nom");
+
+            grid.add(new Label("Activite_ID:"), 0, 0);
+            grid.add(activiteid, 1, 0);
+            grid.add(new Label("Nom Activite:"), 0, 1);
+            grid.add(nom_activite, 1, 1);
+
+            deleteDialog.getDialogPane().setContent(grid);
+
+            deleteDialog.setResultConverter(dialogButton -> {
+                if (dialogButton == deleteButtonType) {
+                    return new Pair<>(activiteid.getText(), nom_activite.getText());
+                }
+                return null;
+            });
+
+            Optional<Pair<String, String>> result = deleteDialog.showAndWait();
+
+        } else if (table.equals("Planification")){
+            // Create the username and password labels and fields
+            GridPane grid = new GridPane();
+            grid.setHgap(10);
+            grid.setVgap(10);
+            grid.setPadding(new Insets(20, 150, 10, 10));
+
+            TextField planificationid = new TextField();
+            planificationid.setPromptText("id");
+            TextField date = new TextField();
+            date.setPromptText("date");
+
+
+
+            // PasswordField password = new PasswordField();
+            //password.setPromptText("Nom");
+            grid.add(new Label("Planification_ID:"), 0, 0);
+            grid.add(planificationid, 1, 0);
+            grid.add(new Label("Date:"), 0, 1);
+            grid.add(date, 1, 1);
+
+
+
+
+            deleteDialog.getDialogPane().setContent(grid);
+
+
+            deleteDialog.setResultConverter(dialogButton -> {
+                if (dialogButton == deleteButtonType) {
+                    return new Pair<>(planificationid.getText(), date.getText());
+                }
+                return null;
+            });
+
+            Optional<Pair<String, String>> result = deleteDialog.showAndWait();
+
+        } else if (table.equals("Formation")){
+            // Create the username and password labels and fields
+            GridPane grid = new GridPane();
+            grid.setHgap(10);
+            grid.setVgap(10);
+            grid.setPadding(new Insets(20, 150, 10, 10));
+
+            TextField formationid = new TextField();
+            formationid.setPromptText("id");
+            TextField nom = new TextField();
+            nom.setPromptText("nom");
+
+
+
+
+            // PasswordField password = new PasswordField();
+            //password.setPromptText("Nom");
+            grid.add(new Label("Formation_ID:"), 0, 0);
+            grid.add(formationid, 1, 0);
+            grid.add(new Label("Nom:"), 0, 1);
+            grid.add(nom, 1, 1);
+
+
+
+
+            deleteDialog.getDialogPane().setContent(grid);
+
+            deleteDialog.setResultConverter(dialogButton -> {
+                if (dialogButton == deleteButtonType) {
+                    return new Pair<>(formationid.getText(), nom.getText());
+                }
+                return null;
+            });
+
+            Optional<Pair<String, String>> result = deleteDialog.showAndWait();
+        }
 
     }
 
