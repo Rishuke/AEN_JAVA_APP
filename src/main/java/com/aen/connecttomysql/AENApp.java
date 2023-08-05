@@ -25,6 +25,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import java.math.BigDecimal;
 import java.sql.Time;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
@@ -493,33 +494,33 @@ public class AENApp extends Application {
                     grid.setPadding(new Insets(20, 150, 10, 10));
 
                     TextField userid = new TextField();
-                    userid.setPromptText("id");
+                    userid.setPromptText("int");
                     TextField nom = new TextField();
-                    nom.setPromptText("nom");
+                    nom.setPromptText("varchar(255)");
                     TextField prenom = new TextField();
-                    prenom.setPromptText("prenom");
+                    prenom.setPromptText("varchar(255)");
                     TextField date_naissance = new TextField();
-                    date_naissance.setPromptText("date_naissance");
+                    date_naissance.setPromptText("datetime(6)");
                     TextField adresse = new TextField();
-                    adresse.setPromptText("adresse");
+                    adresse.setPromptText("varchar(255)");
                     TextField email = new TextField();
-                    email.setPromptText("email");
+                    email.setPromptText("varchar(255)");
                     TextField cotisation = new TextField();
-                    cotisation.setPromptText("cotisation");
+                    cotisation.setPromptText("tinyint(1)");
                     TextField ffa_adhesion = new TextField();
-                    ffa_adhesion.setPromptText("ffa_adhesion");
+                    ffa_adhesion.setPromptText("tinyint(1)");
                     TextField date_adhesion = new TextField();
-                    date_adhesion.setPromptText("date_adhesion");
+                    date_adhesion.setPromptText("datetime(6)");
                     TextField date_renouvellement = new TextField();
-                    date_renouvellement.setPromptText("date_renouvellement");
+                    date_renouvellement.setPromptText("datetime(6)");
                     TextField type = new TextField();
-                    type.setPromptText("type");
+                    type.setPromptText("varchar(255)");
                     TextField telephone = new TextField();
-                    telephone.setPromptText("telephone");
+                    telephone.setPromptText("varchar(255)");
                     TextField genre = new TextField();
-                    genre.setPromptText("genre");
+                    genre.setPromptText("varchar(255)");
                     TextField password = new TextField();
-                    password.setPromptText("password");
+                    password.setPromptText("varchar(255)");
 
                     // PasswordField password = new PasswordField();
                     //password.setPromptText("Nom");
@@ -556,7 +557,7 @@ public class AENApp extends Application {
 
                     addDialog.getDialogPane().setContent(grid);
 
-                    // Convert the result to a username-password-pair when the login button is clicked
+                    /*// Convert the result to a username-password-pair when the login button is clicked
                     addDialog.setResultConverter(dialogButton -> {
                         if (dialogButton == addButtonType) {
                             return new Pair<>(userid.getText(), nom.getText());
@@ -564,7 +565,53 @@ public class AENApp extends Application {
                         return null;
                     });
 
-                    Optional<Pair<String, String>> result = addDialog.showAndWait();
+                    Optional<Pair<String, String>> result = addDialog.showAndWait();*/
+
+            // Convert the result to a MembersEntity when the button is clicked
+            addDialog.setResultConverter(dialogButton -> {
+                if (dialogButton == addButtonType) {
+                    MembersEntity newMember = new MembersEntity();
+                    newMember.setId(Integer.parseInt(userid.getText()));
+                    newMember.setNom(nom.getText());
+                    newMember.setPrenom(prenom.getText());
+                    newMember.setAdresse(adresse.getText());
+                    newMember.setEmail(email.getText());
+                    newMember.setType(type.getText());
+                    newMember.setTelephone(telephone.getText());
+                    newMember.setGenre(genre.getText());
+                    newMember.setPassword(password.getText());
+
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+                    try {
+                        if (!date_naissance.getText().isEmpty()) {
+                            newMember.setDate_naissance(formatter.parse(date_naissance.getText()));
+                        }
+                        if (!date_adhesion.getText().isEmpty()) {
+                            newMember.setDate_adhesion(formatter.parse(date_adhesion.getText()));
+                        }
+                        if (!date_renouvellement.getText().isEmpty()) {
+                            newMember.setDate_renouvellement(formatter.parse(date_renouvellement.getText()));
+                        }
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+
+                    newMember.setCotisation(cotisation.getText().equals("1"));
+                    newMember.setFfa_adhesion(ffa_adhesion.getText().equals("1"));
+
+                    return newMember;
+                }
+                return null;
+            });
+
+            Optional<MembersEntity> result = addDialog.showAndWait();
+
+            result.ifPresent(memberEntity -> {
+                membersService.addMember(memberEntity);
+            });
+
+
+
 
         } else if (table.equals("Activity")){
             // Create the username and password labels and fields
@@ -574,13 +621,13 @@ public class AENApp extends Application {
             grid.setPadding(new Insets(20, 150, 10, 10));
 
             TextField activiteid = new TextField();
-            activiteid.setPromptText("id");
+            activiteid.setPromptText("int");
             TextField nom_activite = new TextField();
-            nom_activite.setPromptText("nom_activite");
+            nom_activite.setPromptText("varchar(255)");
             TextField client_id = new TextField();
-            client_id.setPromptText("client_id");
+            client_id.setPromptText("int");
             TextField pilote_id = new TextField();
-            pilote_id.setPromptText("pilote_id");
+            pilote_id.setPromptText("int");
 
 
             // PasswordField password = new PasswordField();
@@ -616,17 +663,17 @@ public class AENApp extends Application {
         grid.setPadding(new Insets(20, 150, 10, 10));
 
         TextField planificationid = new TextField();
-        planificationid.setPromptText("id");
+        planificationid.setPromptText("int");
         TextField date = new TextField();
-        date.setPromptText("date");
+        date.setPromptText("datetime(6)");
         TextField heure = new TextField();
-        heure.setPromptText("heure");
+        heure.setPromptText("time(6)");
         TextField activite_id = new TextField();
-        activite_id.setPromptText("activite_id");
+        activite_id.setPromptText("int");
         TextField avion_id = new TextField();
-        avion_id.setPromptText("avion_id");
+        avion_id.setPromptText("int");
         TextField ulm_id = new TextField();
-        ulm_id.setPromptText("ulm_id");
+        ulm_id.setPromptText("int");
 
 
         // PasswordField password = new PasswordField();
@@ -666,21 +713,21 @@ public class AENApp extends Application {
             grid.setPadding(new Insets(20, 150, 10, 10));
 
             TextField formationid = new TextField();
-            formationid.setPromptText("id");
+            formationid.setPromptText("int");
             TextField nom = new TextField();
-            nom.setPromptText("nom");
+            nom.setPromptText("varchar(255)");
             TextField date_debut = new TextField();
-            date_debut.setPromptText("date_debut");
+            date_debut.setPromptText("datetime(6)");
             TextField date_fin = new TextField();
-            date_fin.setPromptText("date_fin");
+            date_fin.setPromptText("datetime(6)");
             TextField heure_debut = new TextField();
-            heure_debut.setPromptText("heure_debut");
+            heure_debut.setPromptText("time(6)");
             TextField heure_fin = new TextField();
-            heure_fin.setPromptText("heure_fin");
+            heure_fin.setPromptText("time(6)");
             TextField client_id = new TextField();
-            client_id.setPromptText("client_id");
+            client_id.setPromptText("int");
             TextField formateur_id = new TextField();
-            formateur_id.setPromptText("formateur_id");
+            formateur_id.setPromptText("int");
 
 
 
@@ -737,33 +784,33 @@ public class AENApp extends Application {
             grid.setPadding(new Insets(20, 150, 10, 10));
 
             TextField userid = new TextField();
-            userid.setPromptText("id");
+            userid.setPromptText("int");
             TextField nom = new TextField();
-            nom.setPromptText("nom");
+            nom.setPromptText("varchar(255)");
             TextField prenom = new TextField();
-            prenom.setPromptText("prenom");
+            prenom.setPromptText("varchar(255)");
             TextField date_naissance = new TextField();
-            date_naissance.setPromptText("date_naissance");
+            date_naissance.setPromptText("datetime(6)");
             TextField adresse = new TextField();
-            adresse.setPromptText("adresse");
+            adresse.setPromptText("varchar(255)");
             TextField email = new TextField();
-            email.setPromptText("email");
+            email.setPromptText("varchar(255)");
             TextField cotisation = new TextField();
-            cotisation.setPromptText("cotisation");
+            cotisation.setPromptText("tinyint(1)");
             TextField ffa_adhesion = new TextField();
-            ffa_adhesion.setPromptText("ffa_adhesion");
+            ffa_adhesion.setPromptText("tinyint(1)");
             TextField date_adhesion = new TextField();
-            date_adhesion.setPromptText("date_adhesion");
+            date_adhesion.setPromptText("datetime(6)");
             TextField date_renouvellement = new TextField();
-            date_renouvellement.setPromptText("date_renouvellement");
+            date_renouvellement.setPromptText("datetime(6)");
             TextField type = new TextField();
-            type.setPromptText("type");
+            type.setPromptText("varchar(255)");
             TextField telephone = new TextField();
-            telephone.setPromptText("telephone");
+            telephone.setPromptText("varchar(255)");
             TextField genre = new TextField();
-            genre.setPromptText("genre");
+            genre.setPromptText("varchar(255)");
             TextField password = new TextField();
-            password.setPromptText("password");
+            password.setPromptText("varchar(255)");
 
             // PasswordField password = new PasswordField();
             //password.setPromptText("Nom");
@@ -817,13 +864,13 @@ public class AENApp extends Application {
             grid.setPadding(new Insets(20, 150, 10, 10));
 
             TextField activiteid = new TextField();
-            activiteid.setPromptText("id");
+            activiteid.setPromptText("int");
             TextField nom_activite = new TextField();
-            nom_activite.setPromptText("nom_activite");
+            nom_activite.setPromptText("varchar(255)");
             TextField client_id = new TextField();
-            client_id.setPromptText("client_id");
+            client_id.setPromptText("int");
             TextField pilote_id = new TextField();
-            pilote_id.setPromptText("pilote_id");
+            pilote_id.setPromptText("int");
 
 
             // PasswordField password = new PasswordField();
@@ -858,17 +905,17 @@ public class AENApp extends Application {
             grid.setPadding(new Insets(20, 150, 10, 10));
 
             TextField planificationid = new TextField();
-            planificationid.setPromptText("id");
+            planificationid.setPromptText("int");
             TextField date = new TextField();
-            date.setPromptText("date");
+            date.setPromptText("datetime(6)");
             TextField heure = new TextField();
-            heure.setPromptText("heure");
+            heure.setPromptText("time(6)");
             TextField activite_id = new TextField();
-            activite_id.setPromptText("activite_id");
+            activite_id.setPromptText("int");
             TextField avion_id = new TextField();
-            avion_id.setPromptText("avion_id");
+            avion_id.setPromptText("int");
             TextField ulm_id = new TextField();
-            ulm_id.setPromptText("ulm_id");
+            ulm_id.setPromptText("int");
 
 
             // PasswordField password = new PasswordField();
@@ -908,21 +955,21 @@ public class AENApp extends Application {
             grid.setPadding(new Insets(20, 150, 10, 10));
 
             TextField formationid = new TextField();
-            formationid.setPromptText("id");
+            formationid.setPromptText("int");
             TextField nom = new TextField();
-            nom.setPromptText("nom");
+            nom.setPromptText("varchar(255)");
             TextField date_debut = new TextField();
-            date_debut.setPromptText("date_debut");
+            date_debut.setPromptText("datetime(6)");
             TextField date_fin = new TextField();
-            date_fin.setPromptText("date_fin");
+            date_fin.setPromptText("datetime(6)");
             TextField heure_debut = new TextField();
-            heure_debut.setPromptText("heure_debut");
+            heure_debut.setPromptText("time(6)");
             TextField heure_fin = new TextField();
-            heure_fin.setPromptText("heure_fin");
+            heure_fin.setPromptText("time(6)");
             TextField client_id = new TextField();
-            client_id.setPromptText("client_id");
+            client_id.setPromptText("int");
             TextField formateur_id = new TextField();
-            formateur_id.setPromptText("formateur_id");
+            formateur_id.setPromptText("int");
 
 
 
@@ -978,9 +1025,9 @@ public class AENApp extends Application {
             grid.setPadding(new Insets(20, 150, 10, 10));
 
             TextField userid = new TextField();
-            userid.setPromptText("id");
+            userid.setPromptText("int");
             TextField nom = new TextField();
-            nom.setPromptText("nom");
+            nom.setPromptText("varchar(255)");
 
 
             // PasswordField password = new PasswordField();
@@ -1012,9 +1059,9 @@ public class AENApp extends Application {
             grid.setPadding(new Insets(20, 150, 10, 10));
 
             TextField activiteid = new TextField();
-            activiteid.setPromptText("id");
+            activiteid.setPromptText("int");
             TextField nom_activite = new TextField();
-            nom_activite.setPromptText("nom_activite");
+            nom_activite.setPromptText("varchar(255)");
 
 
             // PasswordField password = new PasswordField();
@@ -1044,9 +1091,9 @@ public class AENApp extends Application {
             grid.setPadding(new Insets(20, 150, 10, 10));
 
             TextField planificationid = new TextField();
-            planificationid.setPromptText("id");
+            planificationid.setPromptText("int");
             TextField date = new TextField();
-            date.setPromptText("date");
+            date.setPromptText("datetime(6)");
 
 
 
@@ -1080,9 +1127,9 @@ public class AENApp extends Application {
             grid.setPadding(new Insets(20, 150, 10, 10));
 
             TextField formationid = new TextField();
-            formationid.setPromptText("id");
+            formationid.setPromptText("int");
             TextField nom = new TextField();
-            nom.setPromptText("nom");
+            nom.setPromptText("varchar(255)");
 
 
 

@@ -49,6 +49,9 @@ public class MembersEntity {
     @Column(name="genre", nullable = false)
     private String genre;
 
+    @Column(name="password")
+    private String password;
+
     public int getId() {
         return id;
     }
@@ -151,5 +154,13 @@ public class MembersEntity {
 
     public void setGenre(String genre) {
         this.genre = genre;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }
