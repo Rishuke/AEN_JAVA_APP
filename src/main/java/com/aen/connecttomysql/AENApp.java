@@ -19,6 +19,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -75,6 +76,12 @@ public class AENApp extends Application {
     private Chart chart8 = null;
 
     private Chart chart9 = null;
+
+    @Autowired
+    private MembersService membersService;
+
+    private ObservableList<MembersEntity> membersData;
+
 
 
 
@@ -155,11 +162,16 @@ public class AENApp extends Application {
                 menuBar.getMenus().add(fileMenu);
                 mainLayout.setTop(menuBar);
 
+                membersData = FXCollections.observableArrayList();
+
                 // Initialize the table views
-                membersTable = new TableView<>();
+                membersTable = new TableView<>(membersData);
                 activitiesTable = new TableView<>();
                 planificationsTable = new TableView<>();
                 formationsTable = new TableView<>();
+
+
+
 
                 // Set up columns for members
                 TableColumn<MembersEntity, Integer> idmColumn = new TableColumn<>("Member_ID");
@@ -250,6 +262,7 @@ public class AENApp extends Application {
 
                 HBox buttonBox1 = new HBox(statsButton, AddButton, UpdateButton, DeleteButton);
                 buttonBox1.setSpacing(10); // Set spacing between buttons
+
 
                 HBox buttonBox2 = new HBox(statsButton2, AddButton2, UpdateButton2, DeleteButton2);
                 buttonBox2.setSpacing(10); // Set spacing between buttons
@@ -458,6 +471,13 @@ public class AENApp extends Application {
         );
     }
 
+    private void updateTableData() {
+        membersData.clear(); // Supprimer les anciennes données
+        membersData.addAll(membersService.getAllMembers()); // Ajouter toutes les nouvelles données
+    }
+
+
+
 
 
     // Authenticate user
@@ -479,7 +499,8 @@ public class AENApp extends Application {
 
     private void showAddWindow(String table) {
 
-        Dialog<Pair<String, String>> addDialog = new Dialog<>();
+       // Dialog<Pair<String, String>> addDialog = new Dialog<>();
+        Dialog<MembersEntity> addDialog = new Dialog<>();
         addDialog.setTitle("Add !");
 
         // Set the button types
@@ -557,7 +578,7 @@ public class AENApp extends Application {
 
                     addDialog.getDialogPane().setContent(grid);
 
-                    /*// Convert the result to a username-password-pair when the login button is clicked
+                   /* // Convert the result to a username-password-pair when the login button is clicked
                     addDialog.setResultConverter(dialogButton -> {
                         if (dialogButton == addButtonType) {
                             return new Pair<>(userid.getText(), nom.getText());
@@ -593,7 +614,12 @@ public class AENApp extends Application {
                             newMember.setDate_renouvellement(formatter.parse(date_renouvellement.getText()));
                         }
                     } catch (ParseException e) {
-                        e.printStackTrace();
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur de format");
+                        alert.setHeaderText("Le format de la date est incorrect");
+                        alert.setContentText("Veuillez entrer la date au format YYYY-MM-DD");
+                        alert.showAndWait();
+                        return null;
                     }
 
                     newMember.setCotisation(cotisation.getText().equals("1"));
@@ -607,11 +633,34 @@ public class AENApp extends Application {
             Optional<MembersEntity> result = addDialog.showAndWait();
 
             result.ifPresent(memberEntity -> {
-                membersService.addMember(memberEntity);
+
+
+                try {
+                    MemberRepository memberRepository = context.getBean(MemberRepository.class);
+                    membersService  = new MembersService(memberRepository);
+                    membersService.addMember(memberEntity); // Utilisez l'instance injectée
+                    updateTableData();
+                    membersTable.getItems().add(memberEntity);
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Succès");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Membre ajouté avec succès!");
+                    alert.showAndWait();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Erreur d'ajout");
+                    alert.setHeaderText("Erreur lors de l'ajout du membre à la base de données");
+                    alert.setContentText(e.getMessage());
+                    alert.showAndWait();
+
+
+                }
             });
+        }
 
 
-
+        /*
 
         } else if (table.equals("Activity")){
             // Create the username and password labels and fields
@@ -764,7 +813,7 @@ public class AENApp extends Application {
 
             Optional<Pair<String, String>> result = addDialog.showAndWait();
         }
-
+    */
     }
 
     private void showUpdateWindow(String table) {
