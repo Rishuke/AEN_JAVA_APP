@@ -25,4 +25,14 @@ public class PlanificationService {
     public PlanificationEntity addPlanification(PlanificationEntity planification) {
         return planificationRepository.save(planification);
     }
+
+    public PlanificationEntity updatePlanification(PlanificationEntity planificationEntity) {
+        if (planificationEntity == null) {
+            throw new IllegalArgumentException("Planification ID cannot be null for update operation");
+        }
+
+        // Vous pouvez ajouter des validations supplémentaires ici, si nécessaire
+
+        return planificationRepository.save(planificationEntity);
+    }
 }

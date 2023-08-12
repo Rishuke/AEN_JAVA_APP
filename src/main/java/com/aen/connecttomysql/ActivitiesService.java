@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+@Service
 public class ActivitiesService {
 
     private final ActivityRepository activityRepository;
@@ -23,4 +24,17 @@ public class ActivitiesService {
     public ActivitiesEntity addActivity(ActivitiesEntity activity) {
         return activityRepository.save(activity);
     }
+
+    public ActivitiesEntity updateActivity(ActivitiesEntity activityEntity) {
+        if (activityEntity == null) {
+            throw new IllegalArgumentException("Activity entity cannot be null for update operation");
+        }
+
+
+
+        // Vous pouvez ajouter des validations supplémentaires ici, si nécessaire
+
+        return activityRepository.save(activityEntity);
+    }
+
 }

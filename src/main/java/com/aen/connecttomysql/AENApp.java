@@ -23,15 +23,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
-
+import java.time.LocalDate;
 import java.math.BigDecimal;
 import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -376,13 +373,13 @@ public class AENApp extends Application {
                 TableColumn<FormationEntity, Time> timeColumn = new TableColumn<>("Heure de début");
                 timeColumn.setCellValueFactory(new PropertyValueFactory<>("heure_debut"));
 
-                TableColumn<FormationEntity, Integer> clientfColumn = new TableColumn<>("Client_ID");
+                /*TableColumn<FormationEntity, Integer> clientfColumn = new TableColumn<>("Client_ID");
                 clientfColumn.setCellValueFactory(cellData ->
                         new ReadOnlyObjectWrapper<>(cellData.getValue().getClient_id().getId()));
 
                 TableColumn<FormationEntity, Integer> formateurfColumn = new TableColumn<>("Formateur_ID");
                 formateurfColumn.setCellValueFactory(cellData ->
-                        new ReadOnlyObjectWrapper<>(cellData.getValue().getFormateur_id().getId()));
+                        new ReadOnlyObjectWrapper<>(cellData.getValue().getFormateur_id().getId()));*/
 
                 // Use a custom cell factory to format the time
                 timeColumn.setCellFactory(column -> {
@@ -407,7 +404,7 @@ public class AENApp extends Application {
                 membersTable.getColumns().addAll(idmColumn,nomColumn, prenomColumn, emailColumn,genreColumn, datenColumn, typeColumn);
                 activitiesTable.getColumns().addAll(idaColumn,activitenomColumn, prixactiviteColumn); // add columns to new table
                 planificationsTable.getColumns().addAll(idpColumn,datepColumn,timepColumn,activitepColumn,avionpColumn,ulmpColumn,  clientpColumn,pilotepColumn);
-                formationsTable.getColumns().addAll(idfColumn,formationnomColumn, datedColumn, datefColumn,timeColumn,clientfColumn,formateurfColumn);
+                formationsTable.getColumns().addAll(idfColumn,formationnomColumn, datedColumn, datefColumn,timeColumn/*,clientfColumn,formateurfColumn*/);
 
                 // Retrieve data and set it as table items
                 Platform.runLater(() -> {
@@ -773,10 +770,10 @@ public class AENApp extends Application {
             grid.add(avion_id, 1, 4);
             grid.add(new Label("ULM ID:"), 0, 5);
             grid.add(ulm_id, 1, 5);
-            grid.add(new Label("Client ID:"), 0, 2);
-            grid.add(client_id, 1, 2);
-            grid.add(new Label("Pilote ID:"), 0, 3);
-            grid.add(pilote_id, 1, 3);
+            grid.add(new Label("Client ID:"), 0, 6);
+            grid.add(client_id, 1, 6);
+            grid.add(new Label("Pilote ID:"), 0, 7);
+            grid.add(pilote_id, 1, 7);
 
             addDialog.getDialogPane().setContent(grid);
 
@@ -1057,15 +1054,15 @@ public class AENApp extends Application {
 
     private void showUpdateWindow(String table) {
 
-        Dialog<Pair<String, String>> updateDialog = new Dialog<>();
-        updateDialog.setTitle("Update !");
 
-        // Set the button types
-        ButtonType updateButtonType = new ButtonType("Appliquer", ButtonBar.ButtonData.OK_DONE);
-        updateDialog.getDialogPane().getButtonTypes().addAll(updateButtonType, ButtonType.CANCEL);
+        if (table.equals("Member")) {
+            Dialog<MembersEntity> updateDialog = new Dialog<>();
+            updateDialog.setTitle("Update !");
 
-        if(table.equals("Member")){
-            // Create the username and password labels and fields
+            // Set the button types
+            ButtonType updateButtonType = new ButtonType("Appliquer", ButtonBar.ButtonData.OK_DONE);
+            updateDialog.getDialogPane().getButtonTypes().addAll(updateButtonType, ButtonType.CANCEL);
+
             GridPane grid = new GridPane();
             grid.setHgap(10);
             grid.setVgap(10);
@@ -1099,9 +1096,63 @@ public class AENApp extends Application {
             genre.setPromptText("varchar(255)");
             TextField password = new TextField();
             password.setPromptText("varchar(255)");
+            // Listener to populate fields based on ID
+            userid.textProperty().addListener((observable, oldValue, newValue) -> {
+                if (!newValue.isEmpty()) {
+                    try {
+                        int memberId = Integer.parseInt(newValue);
+                        MemberRepository memberRepository = context.getBean(MemberRepository.class);
+                        MembersEntity existingMember = memberRepository.findById((long) memberId).orElse(null);
 
-            // PasswordField password = new PasswordField();
-            //password.setPromptText("Nom");
+                        if (existingMember != null) {
+                            nom.setText(existingMember.getNom());
+                            prenom.setText(existingMember.getPrenom());
+                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // Adaptez le format comme vous le souhaitez
+                            String formattedDate = sdf.format(existingMember.getDate_naissance());
+                            date_naissance.setText(formattedDate);
+                            adresse.setText(existingMember.getAdresse());
+                            email.setText(existingMember.getEmail());
+                            cotisation.setText(String.valueOf(existingMember.getCotisation()));
+                            ffa_adhesion.setText(String.valueOf(existingMember.getFfa_adhesion()));
+                            date_adhesion.setText(existingMember.getDate_adhesion().toString());
+                            date_renouvellement.setText(existingMember.getDate_renouvellement().toString());
+                            type.setText(existingMember.getType());
+                            telephone.setText(existingMember.getTelephone());
+                            genre.setText(existingMember.getGenre());
+                            password.setText(existingMember.getPassword());
+
+                            //... [Set all the other fields from the existingMember object]
+
+                        } else {
+                            // Clear all fields if no member exists with the entered ID
+                            nom.clear();
+                            prenom.clear();
+                            date_naissance.clear();
+                            adresse.clear();
+                            email.clear();
+                            cotisation.clear();
+                            ffa_adhesion.clear();
+                            date_adhesion.clear();
+                            date_renouvellement.clear();
+                            type.clear();
+                            telephone.clear();
+                            genre.clear();
+                            password.clear();
+
+                        }
+
+                    } catch (NumberFormatException e) {
+                        // Handle exception for non-integer input
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur de format");
+                        alert.setHeaderText("L'ID du membre doit être un nombre entier");
+                        alert.setContentText(e.getMessage());
+                        alert.showAndWait();
+                    }
+                }
+            });
+
+            // ... [The rest of your code remains unchanged]
 
             grid.add(new Label("Member_ID:"), 0, 0);
             grid.add(userid, 1, 0);
@@ -1132,61 +1183,164 @@ public class AENApp extends Application {
             grid.add(new Label("Password:"), 0, 13);
             grid.add(password, 1, 13);
 
-
             updateDialog.getDialogPane().setContent(grid);
 
             updateDialog.setResultConverter(dialogButton -> {
                 if (dialogButton == updateButtonType) {
-                    return new Pair<>(userid.getText(), nom.getText());
+                    MembersEntity updatedMember;
+                    int memberId = Integer.parseInt(userid.getText());
+                    MemberRepository memberRepository = context.getBean(MemberRepository.class);
+                    updatedMember = memberRepository.findById((long) memberId).orElse(new MembersEntity());
+
+                    LocalDate localDateValue = LocalDate.parse(date_naissance.getText());
+                    java.util.Date utilDate = java.sql.Date.valueOf(localDateValue);
+
+                    // Now update the fields with the new values
+                    updatedMember.setNom(nom.getText());
+                    updatedMember.setPrenom(prenom.getText());
+                    updatedMember.setDate_naissance(utilDate); // or another appropriate parsing method
+                    updatedMember.setAdresse(adresse.getText());
+                    updatedMember.setEmail(email.getText());
+                    updatedMember.setCotisation(Boolean.parseBoolean(cotisation.getText())); // Assuming it's a boolean or a tinyint which represents boolean
+                    updatedMember.setFfa_adhesion(Boolean.parseBoolean(ffa_adhesion.getText())); // Same assumption
+                    updatedMember.setDate_adhesion(utilDate);
+                    updatedMember.setDate_renouvellement(utilDate);
+                    updatedMember.setType(type.getText());
+                    updatedMember.setTelephone(telephone.getText());
+                    updatedMember.setGenre(genre.getText());
+                    updatedMember.setPassword(password.getText());
+
+                    return updatedMember;
                 }
                 return null;
             });
 
-            Optional<Pair<String, String>> result = updateDialog.showAndWait();
+            Optional<MembersEntity> result = updateDialog.showAndWait();
 
-        } else if (table.equals("Activity")){
-            // Create the username and password labels and fields
+            result.ifPresent(memberEntity -> {
+                try {
+                    MemberRepository memberRepository = context.getBean(MemberRepository.class);
+                    membersService = new MembersService(memberRepository);
+                    membersService.updateMember(memberEntity);
+                    // Here, you might want to update your table view with the updated data
+
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Succès");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Membre mis à jour avec succès!");
+                    alert.showAndWait();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Erreur de mise à jour");
+                    alert.setHeaderText("Erreur lors de la mise à jour du membre dans la base de données");
+                    alert.setContentText(e.getMessage());
+                    alert.showAndWait();
+                }
+            });
+        }
+
+        else if (table.equals("Activity")) {
+            Dialog<ActivitiesEntity> updateDialog = new Dialog<>();
+            updateDialog.setTitle("Update Activity");
+
+            ButtonType updateButtonType = new ButtonType("Appliquer", ButtonBar.ButtonData.OK_DONE);
+            updateDialog.getDialogPane().getButtonTypes().addAll(updateButtonType, ButtonType.CANCEL);
+
             GridPane grid = new GridPane();
             grid.setHgap(10);
             grid.setVgap(10);
             grid.setPadding(new Insets(20, 150, 10, 10));
 
-            TextField activiteid = new TextField();
-            activiteid.setPromptText("int");
+            TextField activityId = new TextField();
+            activityId.setPromptText("int");
             TextField nom_activite = new TextField();
             nom_activite.setPromptText("varchar(255)");
-            TextField client_id = new TextField();
-            client_id.setPromptText("int");
-            TextField pilote_id = new TextField();
-            pilote_id.setPromptText("int");
+            TextField prix_activite = new TextField();
+            prix_activite.setPromptText("float");
 
+            // Listener to populate fields based on ID
+            activityId.textProperty().addListener((observable, oldValue, newValue) -> {
+                if (!newValue.isEmpty()) {
+                    try {
+                        int id = Integer.parseInt(newValue);
+                        ActivityRepository activityRepository = context.getBean(ActivityRepository.class);
+                        ActivitiesEntity existingActivity = activityRepository.findById((long) id).orElse(null);
 
-            // PasswordField password = new PasswordField();
-            //password.setPromptText("Nom");
+                        if (existingActivity != null) {
+                            nom_activite.setText(existingActivity.getNom_activite());
+                            prix_activite.setText(String.valueOf(existingActivity.getPrix_activite()));
 
-            grid.add(new Label("Activite_ID:"), 0, 0);
-            grid.add(activiteid, 1, 0);
+                        } else {
+                            nom_activite.clear();
+                            prix_activite.clear();
+                        }
+                    } catch (NumberFormatException e) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur de format");
+                        alert.setHeaderText("L'ID de l'activité doit être un nombre entier");
+                        alert.setContentText(e.getMessage());
+                        alert.showAndWait();
+                    }
+                }
+            });
+
+            grid.add(new Label("Activity_ID:"), 0, 0);
+            grid.add(activityId, 1, 0);
             grid.add(new Label("Nom Activite:"), 0, 1);
             grid.add(nom_activite, 1, 1);
-            grid.add(new Label("Client ID:"), 0, 2);
-            grid.add(client_id, 1, 2);
-            grid.add(new Label("Pilote ID:"), 0, 3);
-            grid.add(pilote_id, 1, 3);
-
+            grid.add(new Label( "Prix de l'Activite"),0,2);
+            grid.add(prix_activite,1,2);
 
             updateDialog.getDialogPane().setContent(grid);
 
             updateDialog.setResultConverter(dialogButton -> {
                 if (dialogButton == updateButtonType) {
-                    return new Pair<>(activiteid.getText(), nom_activite.getText());
+                    ActivitiesEntity updatedActivity;
+                    int id = Integer.parseInt(activityId.getText());
+                    ActivityRepository activityRepository = context.getBean(ActivityRepository.class);
+                    updatedActivity = activityRepository.findById((long) id).orElse(new ActivitiesEntity());
+
+                    updatedActivity.setNom_activite(nom_activite.getText());
+                    updatedActivity.setPrix_activite(Float.parseFloat(prix_activite.getText()));
+
+
+                    return updatedActivity;
                 }
                 return null;
             });
 
-            Optional<Pair<String, String>> result = updateDialog.showAndWait();
+            Optional<ActivitiesEntity> result = updateDialog.showAndWait();
 
-        } else if (table.equals("Planification")){
-            // Create the username and password labels and fields
+            result.ifPresent(activityEntity -> {
+                try {
+                    ActivityRepository activityRepository = context.getBean(ActivityRepository.class);
+                    ActivitiesService activityService = new ActivitiesService(activityRepository);
+                    activityService.updateActivity(activityEntity); // Assuming you have an updateActivity method in your service
+                    // Here, you might want to update your table view with the updated data
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Succès");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Activité mise à jour avec succès!");
+                    alert.showAndWait();
+                } catch (Exception e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Erreur de mise à jour");
+                    alert.setHeaderText("Erreur lors de la mise à jour de l'activité dans la base de données");
+                    alert.setContentText(e.getMessage());
+                    alert.showAndWait();
+                }
+            });
+
+
+        } else if (table.equals("Planification")) {
+
+            Dialog<PlanificationEntity> updateDialog = new Dialog<>();
+            updateDialog.setTitle("Update Planification!");
+
+            ButtonType updateButtonType = new ButtonType("Appliquer", ButtonBar.ButtonData.OK_DONE);
+            updateDialog.getDialogPane().getButtonTypes().addAll(updateButtonType, ButtonType.CANCEL);
+
             GridPane grid = new GridPane();
             grid.setHgap(10);
             grid.setVgap(10);
@@ -1195,19 +1349,62 @@ public class AENApp extends Application {
             TextField planificationid = new TextField();
             planificationid.setPromptText("int");
             TextField date = new TextField();
-            date.setPromptText("datetime(6)");
+            date.setPromptText("yyyy-MM-dd");
             TextField heure = new TextField();
-            heure.setPromptText("time(6)");
+            heure.setPromptText("HH:mm:ss");
             TextField activite_id = new TextField();
             activite_id.setPromptText("int");
             TextField avion_id = new TextField();
             avion_id.setPromptText("int");
             TextField ulm_id = new TextField();
             ulm_id.setPromptText("int");
+            TextField client_id = new TextField();
+            client_id.setPromptText("int");
+            TextField pilote_id = new TextField();
+            pilote_id.setPromptText("int");
+
+            // Listener to populate fields based on planificationid
+            planificationid.textProperty().addListener((observable, oldValue, newValue) -> {
+                if (!newValue.isEmpty()) {
+                    try {
+                        int id = Integer.parseInt(newValue);
+                        PlanificationRepository planificationRepository = context.getBean(PlanificationRepository.class);
+                        PlanificationEntity existingPlanification = planificationRepository.findById((long) id).orElse(null);
+
+                        if (existingPlanification != null) {
+                            date.setText(existingPlanification.getDate().toString());
+                            heure.setText(existingPlanification.getHeure().toString());
+
+                            // Populate associated IDs as well
+                            activite_id.setText(String.valueOf(existingPlanification.getActivite_id().getId()));
+                            client_id.setText(String.valueOf(existingPlanification.getClient_id().getId()));
+                            ulm_id.setText(String.valueOf(existingPlanification.getUlm_id().getId()));
+                            avion_id.setText(String.valueOf(existingPlanification.getAvion_id().getId()));
+                            pilote_id.setText(String.valueOf(existingPlanification.getPilote_id().getId()));
+                            System.out.println("Fetched Planification: " + existingPlanification);
+
+                        } else {
+                            // Clear all fields or show feedback to the user that the entity doesn't exist.
+                            date.clear();
+                            heure.clear();
+                            activite_id.clear();
+                            avion_id.clear();
+                            ulm_id.clear();
+                            client_id.clear();
+                            pilote_id.clear();
+                        }
+                    } catch (NumberFormatException e) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur de format");
+                        alert.setHeaderText("L'ID de la planification doit être un nombre entier");
+                        alert.setContentText(e.getMessage());
+                        alert.showAndWait();
+                    }
+                }
+            });
 
 
-            // PasswordField password = new PasswordField();
-            //password.setPromptText("Nom");
+
             grid.add(new Label("Planification_ID:"), 0, 0);
             grid.add(planificationid, 1, 0);
             grid.add(new Label("Date:"), 0, 1);
@@ -1220,23 +1417,85 @@ public class AENApp extends Application {
             grid.add(avion_id, 1, 4);
             grid.add(new Label("ULM ID:"), 0, 5);
             grid.add(ulm_id, 1, 5);
-
-
+            grid.add(new Label("Client ID:"), 0, 6);
+            grid.add(client_id, 1, 6);
+            grid.add(new Label("Pilote ID:"), 0, 7);
+            grid.add(pilote_id, 1, 7);
 
             updateDialog.getDialogPane().setContent(grid);
 
-
             updateDialog.setResultConverter(dialogButton -> {
                 if (dialogButton == updateButtonType) {
-                    return new Pair<>(planificationid.getText(), date.getText());
+                    PlanificationEntity updatedPlanification = new PlanificationEntity();
+
+                    // Assuming setters are present in PlanificationEntity
+                    updatedPlanification.setId(Integer.parseInt(planificationid.getText()));
+                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+
+                    ActivityRepository activitiesRepository = context.getBean(ActivityRepository.class);
+                    AvionRepository avionRepository = context.getBean(AvionRepository.class);
+                    UlmRepository ulmRepository = context.getBean(UlmRepository.class);
+                    MemberRepository memberRepository = context.getBean(MemberRepository.class);
+                    // Fetch the associated entities using the IDs from the text fields.
+                    ActivitiesEntity associatedActivity = activitiesRepository.findById((long) Integer.parseInt(activite_id.getText())).orElse(null);
+                    AvionEntity associatedAvion = avionRepository.findById((long) Integer.parseInt(avion_id.getText())).orElse(null);
+                    UlmEntity associatedUlm = ulmRepository.findById((long) Integer.parseInt(ulm_id.getText())).orElse(null);
+                    MembersEntity associatedClient = memberRepository.findById((long) Integer.parseInt(client_id.getText())).orElse(null);
+                    MembersEntity associatedPilote = memberRepository.findById((long) Integer.parseInt(pilote_id.getText())).orElse(null);
+
+
+                    try {
+                        Date parsedDate = format.parse(date.getText());
+                        updatedPlanification.setDate(parsedDate);
+                        java.sql.Time parsedTime = java.sql.Time.valueOf(heure.getText());
+                        updatedPlanification.setHeure(parsedTime);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                        // Ideally, handle this exception more gracefully.
+                    }
+
+                    updatedPlanification.setActivite_id(associatedActivity);
+                    updatedPlanification.setAvion_id(associatedAvion);
+                    updatedPlanification.setUlm_id(associatedUlm);
+                    updatedPlanification.setClient_id(associatedClient);
+                    updatedPlanification.setPilote_id(associatedPilote);
+
+
+                    return updatedPlanification;
                 }
                 return null;
             });
 
-            Optional<Pair<String, String>> result = updateDialog.showAndWait();
+            Optional<PlanificationEntity> result = updateDialog.showAndWait();
 
-        } else if (table.equals("Formation")){
-            // Create the username and password labels and fields
+            result.ifPresent(planificationEntity -> {
+                try {
+                    PlanificationRepository planificationRepository = context.getBean(PlanificationRepository.class);
+                    PlanificationService planificationService = new PlanificationService(planificationRepository);
+
+                    planificationService.updatePlanification(planificationEntity);
+
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Succès");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Planification mise à jour avec succès!");
+                    alert.showAndWait();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Erreur de mise à jour");
+                    alert.setHeaderText("Erreur lors de la mise à jour de la planification dans la base de données");
+                    alert.setContentText(e.getMessage());
+                    alert.showAndWait();
+                }
+            });
+        }else if (table.equals("Formation")) {
+
+            Dialog<FormationEntity> updateDialog = new Dialog<>();
+            updateDialog.setTitle("Update Formation!");
+
+            ButtonType updateButtonType = new ButtonType("Appliquer", ButtonBar.ButtonData.OK_DONE);
+            updateDialog.getDialogPane().getButtonTypes().addAll(updateButtonType, ButtonType.CANCEL);
             GridPane grid = new GridPane();
             grid.setHgap(10);
             grid.setVgap(10);
@@ -1254,15 +1513,46 @@ public class AENApp extends Application {
             heure_debut.setPromptText("time(6)");
             TextField heure_fin = new TextField();
             heure_fin.setPromptText("time(6)");
-            TextField client_id = new TextField();
-            client_id.setPromptText("int");
-            TextField formateur_id = new TextField();
-            formateur_id.setPromptText("int");
+
+            // Listener to populate fields based on formationid
+            formationid.textProperty().addListener((observable, oldValue, newValue) -> {
+                if (!newValue.isEmpty()) {
+                    try {
+                        int id = Integer.parseInt(newValue);
+                        FormationRepository formationRepository = context.getBean(FormationRepository.class);
+                        FormationEntity existingFormation = formationRepository.findById((long) id).orElse(null);
+
+                        if (existingFormation != null) {
+                            nom.setText(existingFormation.getNom());
+
+                            // Assuming dateDebut, dateFin, heureDebut, heureFin are of type java.util.Date or java.sql.Time
+                            date_debut.setText(new SimpleDateFormat("yyyy-MM-dd").format(existingFormation.getDate_debut()));
+                            date_fin.setText(new SimpleDateFormat("yyyy-MM-dd").format(existingFormation.getDate_fin()));
+                            heure_debut.setText(new SimpleDateFormat("HH:mm:ss").format(existingFormation.getHeure_debut()));
+                            heure_fin.setText(new SimpleDateFormat("HH:mm:ss").format(existingFormation.getHeure_fin()));
 
 
 
-            // PasswordField password = new PasswordField();
-            //password.setPromptText("Nom");
+
+                        } else {
+                            // Clear all fields or show feedback to the user that the entity doesn't exist.
+                            nom.clear();
+                            date_debut.clear();
+                            date_fin.clear();
+                            heure_debut.clear();
+                            heure_fin.clear();
+
+                        }
+                    } catch (NumberFormatException e) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur de format");
+                        alert.setHeaderText("L'ID de la formation doit être un nombre entier");
+                        alert.setContentText(e.getMessage());
+                        alert.showAndWait();
+                    }
+                }
+            });
+
             grid.add(new Label("Formation_ID:"), 0, 0);
             grid.add(formationid, 1, 0);
             grid.add(new Label("Nom:"), 0, 1);
@@ -1275,23 +1565,72 @@ public class AENApp extends Application {
             grid.add(heure_debut, 1, 4);
             grid.add(new Label("Heure Fin:"), 0, 5);
             grid.add(heure_fin, 1, 5);
-            grid.add(new Label("Client ID:"), 0, 6);
-            grid.add(client_id, 1, 6);
-            grid.add(new Label("Formateur ID:"), 0, 7);
-            grid.add(formateur_id, 1, 7);
-
 
 
             updateDialog.getDialogPane().setContent(grid);
 
             updateDialog.setResultConverter(dialogButton -> {
                 if (dialogButton == updateButtonType) {
-                    return new Pair<>(formationid.getText(), nom.getText());
+                    FormationEntity updatedFormation = new FormationEntity();
+
+                    // Assuming setters are present in FormationEntity
+                    updatedFormation.setId(Integer.parseInt(formationid.getText()));
+
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+
+
+
+                    try {
+                        Date parsedDateDebut = dateFormat.parse(date_debut.getText());
+                        Date parsedDateFin = dateFormat.parse(date_fin.getText());
+                        Time parsedHeureDebut = Time.valueOf(heure_debut.getText());
+                        Time parsedHeureFin = Time.valueOf(heure_fin.getText());
+
+                        updatedFormation.setDate_debut(parsedDateDebut);
+                        updatedFormation.setDate_fin(parsedDateFin);
+                        updatedFormation.setHeure_debut(parsedHeureDebut);
+                        updatedFormation.setHeure_fin(parsedHeureFin);
+
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                        // Ideally, handle this exception more gracefully.
+                    }
+
+                    updatedFormation.setNom(nom.getText());
+
+
+                    return updatedFormation;
                 }
                 return null;
             });
 
-            Optional<Pair<String, String>> result = updateDialog.showAndWait();
+
+            Optional<FormationEntity> result = updateDialog.showAndWait();
+
+            result.ifPresent(formationEntity -> {
+                try {
+                    // I'm making an assumption about the names of the repository and service classes.
+                    // You may need to adjust these to your actual class names.
+                    FormationRepository formationRepository = context.getBean(FormationRepository.class);
+                    FormationService formationService = new FormationService(formationRepository);
+
+                    formationService.updateFormation(formationEntity);
+
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Succès");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Formation mise à jour avec succès!");
+                    alert.showAndWait();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Erreur de mise à jour");
+                    alert.setHeaderText("Erreur lors de la mise à jour de la formation dans la base de données");
+                    alert.setContentText(e.getMessage());
+                    alert.showAndWait();
+                }
+            });
         }
 
     }

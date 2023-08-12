@@ -25,4 +25,15 @@ public class MembersService {
     public MembersEntity addMember(MembersEntity member) {
         return memberRepository.save(member);
     }
+
+    // Votre méthode pour mettre à jour un membre
+    public MembersEntity updateMember(MembersEntity memberEntity) {
+        if (memberEntity == null) {
+            throw new IllegalArgumentException("Member ID cannot be null for update operation");
+        }
+
+        // Vous pouvez ajouter des validations supplémentaires ici, si nécessaire
+
+        return memberRepository.save(memberEntity);
+    }
 }

@@ -25,4 +25,21 @@ public class FormationService {
     public FormationEntity addFormation(FormationEntity formation) {
         return formationRepository.save(formation);
     }
+
+
+    public void updateFormation(FormationEntity formationEntity) throws Exception {
+        // Assuming the FormationEntity has a valid ID, and the repository has a 'save' method
+        // If the formation does not exist, an exception should be raised.
+        if (formationEntity == null ) {
+            throw new IllegalArgumentException("Invalid Formation Entity provided");
+        }
+
+        FormationEntity existingFormation = formationRepository.findById((long) formationEntity.getId()).orElse(null);
+        if (existingFormation == null) {
+            throw new Exception("Formation with ID " + formationEntity.getId() + " does not exist");
+        }
+
+        // Assuming the repository's 'save' method handles both updates and inserts
+        formationRepository.save(formationEntity);
+    }
 }
