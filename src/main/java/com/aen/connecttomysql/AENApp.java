@@ -80,7 +80,7 @@ public class AENApp extends Application {
     @Autowired
     private MembersService membersService;
 
-    private ObservableList<MembersEntity> membersData;
+
 
 
 
@@ -162,10 +162,10 @@ public class AENApp extends Application {
                 menuBar.getMenus().add(fileMenu);
                 mainLayout.setTop(menuBar);
 
-                membersData = FXCollections.observableArrayList();
+
 
                 // Initialize the table views
-                membersTable = new TableView<>(membersData);
+                membersTable = new TableView<>();
                 activitiesTable = new TableView<>();
                 planificationsTable = new TableView<>();
                 formationsTable = new TableView<>();
@@ -299,15 +299,9 @@ public class AENApp extends Application {
                 //TableColumn<ActivitiesEntity, String> descriptionColumn = new TableColumn<>("Description");
                 //descriptionColumn.setCellValueFactory(new PropertyValueFactory<>("description"));
 
-                TableColumn<ActivitiesEntity, Integer> clientColumn = new TableColumn<>("Client_ID");
-                clientColumn.setCellValueFactory(cellData ->
-                        new ReadOnlyObjectWrapper<>(cellData.getValue().getClient_id().getId()));
+                TableColumn<ActivitiesEntity, Float> prixactiviteColumn = new TableColumn<>("Prix de l'activite");
+                prixactiviteColumn.setCellValueFactory(new PropertyValueFactory<>("prix_activite"));
 
-                TableColumn<ActivitiesEntity, Integer> piloteColumn = new TableColumn<>("Pilote_ID");
-                piloteColumn.setCellValueFactory(cellData -> {
-                    MembersEntity pilote = cellData.getValue().getPilote_id();
-                    return pilote != null ? new ReadOnlyObjectWrapper<>(pilote.getId()) : new ReadOnlyObjectWrapper<>(null);
-                });
 
 
 
@@ -336,6 +330,16 @@ public class AENApp extends Application {
                 ulmpColumn.setCellValueFactory(cellData -> {
                     UlmEntity ulm = cellData.getValue().getUlm_id();
                     return ulm != null ? new ReadOnlyObjectWrapper<>(ulm.getId()) : new ReadOnlyObjectWrapper<>(null);
+                });
+
+                TableColumn<PlanificationEntity, Integer> clientpColumn = new TableColumn<>("Client_ID");
+                clientpColumn.setCellValueFactory(cellData ->
+                        new ReadOnlyObjectWrapper<>(cellData.getValue().getClient_id().getId()));
+
+                TableColumn<PlanificationEntity, Integer> pilotepColumn = new TableColumn<>("Pilote_ID");
+                pilotepColumn.setCellValueFactory(cellData -> {
+                    MembersEntity pilote = cellData.getValue().getPilote_id();
+                    return pilote != null ? new ReadOnlyObjectWrapper<>(pilote.getId()) : new ReadOnlyObjectWrapper<>(null);
                 });
 
                 // Use a custom cell factory to format the time
@@ -401,8 +405,8 @@ public class AENApp extends Application {
 
                 // Add columns to the tables
                 membersTable.getColumns().addAll(idmColumn,nomColumn, prenomColumn, emailColumn,genreColumn, datenColumn, typeColumn);
-                activitiesTable.getColumns().addAll(idaColumn,activitenomColumn,  clientColumn,piloteColumn); // add columns to new table
-                planificationsTable.getColumns().addAll(idpColumn,datepColumn,timepColumn,activitepColumn,avionpColumn,ulmpColumn);
+                activitiesTable.getColumns().addAll(idaColumn,activitenomColumn, prixactiviteColumn); // add columns to new table
+                planificationsTable.getColumns().addAll(idpColumn,datepColumn,timepColumn,activitepColumn,avionpColumn,ulmpColumn,  clientpColumn,pilotepColumn);
                 formationsTable.getColumns().addAll(idfColumn,formationnomColumn, datedColumn, datefColumn,timeColumn,clientfColumn,formateurfColumn);
 
                 // Retrieve data and set it as table items
@@ -471,10 +475,7 @@ public class AENApp extends Application {
         );
     }
 
-    private void updateTableData() {
-        membersData.clear(); // Supprimer les anciennes données
-        membersData.addAll(membersService.getAllMembers()); // Ajouter toutes les nouvelles données
-    }
+
 
 
 
@@ -672,20 +673,14 @@ public class AENApp extends Application {
 
             TextField nom_activite = new TextField();
             nom_activite.setPromptText("varchar(255)");
-            TextField client_id = new TextField();
-            client_id.setPromptText("int");
-            TextField pilote_id = new TextField();
-            pilote_id.setPromptText("int");
+
 
 
 
 
             grid.add(new Label("Nom Activite:"), 0, 1);
             grid.add(nom_activite, 1, 1);
-            grid.add(new Label("Client ID:"), 0, 2);
-            grid.add(client_id, 1, 2);
-            grid.add(new Label("Pilote ID:"), 0, 3);
-            grid.add(pilote_id, 1, 3);
+
 
 
             addDialog.getDialogPane().setContent(grid);
@@ -702,31 +697,7 @@ public class AENApp extends Application {
 
 
 
-                    // Récupérer l'entité membre correspondant à l'ID du client fourni
-                    MembersEntity clientEntity = memberRepository.findById((long) Integer.parseInt(client_id.getText())).orElse(null);
-                    if (clientEntity == null) {
-                        // Gérer l'erreur si l'ID du client n'est pas trouvé
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setTitle("Erreur");
-                        alert.setHeaderText("Client non trouvé");
-                        alert.setContentText("L'ID du client fourni ne correspond à aucun membre.");
-                        alert.showAndWait();
-                        return null;
-                    }
-                    newActivity.setClient_id(clientEntity);
 
-                    // Récupérer l'entité membre correspondant à l'ID du pilote fourni
-                    MembersEntity piloteEntity = memberRepository.findById((long) Integer.parseInt(pilote_id.getText())).orElse(null);
-                    if (piloteEntity == null) {
-                        // Gérer l'erreur si l'ID du pilote n'est pas trouvé
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setTitle("Erreur");
-                        alert.setHeaderText("Pilote non trouvé");
-                        alert.setContentText("L'ID du pilote fourni ne correspond à aucun membre.");
-                        alert.showAndWait();
-                        return null;
-                    }
-                    newActivity.setPilote_id(piloteEntity);
 
                     return newActivity;
                 }
@@ -784,6 +755,10 @@ public class AENApp extends Application {
             avion_id.setPromptText("int");
             TextField ulm_id = new TextField();
             ulm_id.setPromptText("int");
+            TextField client_id = new TextField();
+            client_id.setPromptText("int");
+            TextField pilote_id = new TextField();
+            pilote_id.setPromptText("int");
 
 
 
@@ -798,6 +773,10 @@ public class AENApp extends Application {
             grid.add(avion_id, 1, 4);
             grid.add(new Label("ULM ID:"), 0, 5);
             grid.add(ulm_id, 1, 5);
+            grid.add(new Label("Client ID:"), 0, 2);
+            grid.add(client_id, 1, 2);
+            grid.add(new Label("Pilote ID:"), 0, 3);
+            grid.add(pilote_id, 1, 3);
 
             addDialog.getDialogPane().setContent(grid);
 
@@ -865,6 +844,32 @@ public class AENApp extends Application {
                         alert.showAndWait();
                         return null;
                     }
+
+                    // Récupérer l'entité membre correspondant à l'ID du client fourni
+                    MembersEntity clientEntity = memberRepository.findById((long) Integer.parseInt(client_id.getText())).orElse(null);
+                    if (clientEntity == null) {
+                        // Gérer l'erreur si l'ID du client n'est pas trouvé
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur");
+                        alert.setHeaderText("Client non trouvé");
+                        alert.setContentText("L'ID du client fourni ne correspond à aucun membre.");
+                        alert.showAndWait();
+                        return null;
+                    }
+                    newPlanification.setClient_id(clientEntity);
+
+                    // Récupérer l'entité membre correspondant à l'ID du pilote fourni
+                    MembersEntity piloteEntity = memberRepository.findById((long) Integer.parseInt(pilote_id.getText())).orElse(null);
+                    if (piloteEntity == null) {
+                        // Gérer l'erreur si l'ID du pilote n'est pas trouvé
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur");
+                        alert.setHeaderText("Pilote non trouvé");
+                        alert.setContentText("L'ID du pilote fourni ne correspond à aucun membre.");
+                        alert.showAndWait();
+                        return null;
+                    }
+                    newPlanification.setPilote_id(piloteEntity);
 
 
                     return newPlanification;

@@ -30,6 +30,14 @@ public class PlanificationEntity {
     @JoinColumn(name = "ulm_id")
     private UlmEntity ulm_id;
 
+    @ManyToOne
+    @JoinColumn(name = "client_id")
+    private MembersEntity client_id;
+
+    @ManyToOne
+    @JoinColumn(name = "pilote_id")
+    private MembersEntity pilote_id;
+
     public int getId() {
         return id;
     }
@@ -76,5 +84,21 @@ public class PlanificationEntity {
 
     public void setUlm_id(UlmEntity ulm_id) {
         this.ulm_id = ulm_id;
+    }
+
+    public MembersEntity getClient_id() {
+        return client_id;
+    }
+
+    public void setClient_id(MembersEntity client_id) {
+        this.client_id = client_id;
+    }
+
+    public MembersEntity getPilote_id() {
+        return pilote_id;
+    }
+
+    public void setPilote_id(MembersEntity pilote_id) {
+        this.pilote_id = pilote_id;
     }
 }

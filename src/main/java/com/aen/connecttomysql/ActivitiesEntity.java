@@ -14,13 +14,8 @@ public class ActivitiesEntity {
     @Column(name="nom_activite", nullable = false)
     private String nom_activite;
 
-    @ManyToOne
-    @JoinColumn(name = "client_id")
-    private MembersEntity client_id;
-
-    @ManyToOne
-    @JoinColumn(name = "pilote_id")
-    private MembersEntity pilote_id;
+    @Column(name="prix_activite", nullable = false)
+    private float prix_activite;
 
     public int getId() {
         return id;
@@ -38,19 +33,11 @@ public class ActivitiesEntity {
         this.nom_activite = nom_activite;
     }
 
-    public MembersEntity getClient_id() {
-        return client_id;
+    public float getPrix_activite() {
+        return prix_activite;
     }
 
-    public void setClient_id(MembersEntity client_id) {
-        this.client_id = client_id;
-    }
-
-    public MembersEntity getPilote_id() {
-        return pilote_id;
-    }
-
-    public void setPilote_id(MembersEntity pilote_id) {
-        this.pilote_id = pilote_id;
+    public void setPrix_activite(float prix_activite) {
+        this.prix_activite = prix_activite;
     }
 }
