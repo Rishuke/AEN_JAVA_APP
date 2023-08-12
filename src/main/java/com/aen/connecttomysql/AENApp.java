@@ -77,7 +77,7 @@ public class AENApp extends Application {
     @Autowired
     private MembersService membersService;
 
-
+   // private  ObservableList<FormationEntity> formationData = FXCollections.observableArrayList();
 
 
 
@@ -167,7 +167,7 @@ public class AENApp extends Application {
                 planificationsTable = new TableView<>();
                 formationsTable = new TableView<>();
 
-
+               //formationsTable.setItems(formationData);
 
 
                 // Set up columns for members
@@ -1195,6 +1195,7 @@ public class AENApp extends Application {
                     LocalDate localDateValue = LocalDate.parse(date_naissance.getText());
                     java.util.Date utilDate = java.sql.Date.valueOf(localDateValue);
 
+
                     // Now update the fields with the new values
                     updatedMember.setNom(nom.getText());
                     updatedMember.setPrenom(prenom.getText());
@@ -1223,6 +1224,9 @@ public class AENApp extends Application {
                     membersService = new MembersService(memberRepository);
                     membersService.updateMember(memberEntity);
                     // Here, you might want to update your table view with the updated data
+
+                    int memberId = Integer.parseInt(userid.getText());
+                    membersTable.getItems().set(memberId -1,memberEntity);
 
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Succès");
@@ -1318,6 +1322,10 @@ public class AENApp extends Application {
                     ActivitiesService activityService = new ActivitiesService(activityRepository);
                     activityService.updateActivity(activityEntity); // Assuming you have an updateActivity method in your service
                     // Here, you might want to update your table view with the updated data
+
+                    int activityid = Integer.parseInt(activityId.getText());
+                    activitiesTable.getItems().set(activityid -1,activityEntity);
+
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Succès");
                     alert.setHeaderText(null);
@@ -1475,6 +1483,9 @@ public class AENApp extends Application {
 
                     planificationService.updatePlanification(planificationEntity);
 
+                    int planification = Integer.parseInt(planificationid.getText());
+                    planificationsTable.getItems().set(planification -1,planificationEntity);
+
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Succès");
                     alert.setHeaderText(null);
@@ -1616,6 +1627,9 @@ public class AENApp extends Application {
                     FormationService formationService = new FormationService(formationRepository);
 
                     formationService.updateFormation(formationEntity);
+
+                    int formaid = Integer.parseInt(formationid.getText());
+                    formationsTable.getItems().set(formaid -1,formationEntity);
 
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Succès");
