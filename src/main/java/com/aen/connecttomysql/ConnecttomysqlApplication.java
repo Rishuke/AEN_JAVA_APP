@@ -70,6 +70,8 @@ public class ConnecttomysqlApplication {
         System.out.println("\n");
 
 
+
+
     }
 
 }

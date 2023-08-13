@@ -27,13 +27,7 @@ public class FormationEntity {
     private Time heure_fin;
 
 
-    @ManyToOne
-    @JoinColumn(name = "client_id")
-    private MembersEntity client_id;
 
-    @ManyToOne
-    @JoinColumn(name = "formateur_id")
-    private MembersEntity formateur_id;
 
     public int getId() {
         return id;
@@ -83,19 +77,5 @@ public class FormationEntity {
         this.heure_fin = heure_fin;
     }
 
-    public MembersEntity getClient_id() {
-        return client_id;
-    }
 
-    public void setClient_id(MembersEntity client_id) {
-        this.client_id = client_id;
-    }
-
-    public MembersEntity getFormateur_id() {
-        return formateur_id;
-    }
-
-    public void setFormateur_id(MembersEntity formateur_id) {
-        this.formateur_id = formateur_id;
-    }
 }
