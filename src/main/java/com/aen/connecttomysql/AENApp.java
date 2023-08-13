@@ -79,7 +79,7 @@ public class AENApp extends Application {
 
    // private  ObservableList<FormationEntity> formationData = FXCollections.observableArrayList();
 
-
+    private ObservableList<MembersEntity> membersData = FXCollections.observableArrayList();
 
 
     public static void main(String[] args) {
@@ -670,13 +670,16 @@ public class AENApp extends Application {
 
             TextField nom_activite = new TextField();
             nom_activite.setPromptText("varchar(255)");
-
+            TextField prix_activite = new TextField();
+            prix_activite.setPromptText("float");
 
 
 
 
             grid.add(new Label("Nom Activite:"), 0, 1);
             grid.add(nom_activite, 1, 1);
+            grid.add(new Label("Prix de l'Activite"), 0, 2);
+            grid.add(prix_activite, 1, 2);
 
 
 
@@ -691,6 +694,7 @@ public class AENApp extends Application {
 
 
                     newActivity.setNom_activite(nom_activite.getText());
+                    newActivity.setPrix_activite(Float.parseFloat(prix_activite.getText()));
 
 
 
@@ -829,15 +833,25 @@ public class AENApp extends Application {
 
                     newPlanification.setAvion_id(avionEntity);
 
-                    // Récupérer l'entité ULM correspondant à l'ID de l'ULM fourni
-                    UlmEntity ulmEntity = ulmRepository.findById((long) Integer.parseInt(ulm_id.getText())).orElse(null);
-                    newPlanification.setUlm_id(ulmEntity);
-                    if (ulmEntity == null && avionEntity == null) {
+                    if (avionEntity == null) {
                         // Gérer l'erreur si l'ID de l'ULM n'est pas trouvé
                         Alert alert = new Alert(Alert.AlertType.ERROR);
                         alert.setTitle("Erreur");
-                        alert.setHeaderText("ULM non trouvé et Avion non trouvé");
-                        alert.setContentText("L'ID de l'ULM et l'Avion fourni ne correspond à aucun ULM et à aucun avion enregistré.");
+                        alert.setHeaderText("Avion non trouvé");
+                        alert.setContentText("L'ID de l'Avion fourni ne correspond  à aucun avion enregistré.");
+                        alert.showAndWait();
+                        return null;
+                    }
+
+                    // Récupérer l'entité ULM correspondant à l'ID de l'ULM fourni
+                    UlmEntity ulmEntity = ulmRepository.findById((long) Integer.parseInt(ulm_id.getText())).orElse(null);
+                    newPlanification.setUlm_id(ulmEntity);
+                    if (ulmEntity == null) {
+                        // Gérer l'erreur si l'ID de l'ULM n'est pas trouvé
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur");
+                        alert.setHeaderText("ULM non trouvé ");
+                        alert.setContentText("L'ID de l'ULM  fourni ne correspond à aucun ULM enregistré.");
                         alert.showAndWait();
                         return null;
                     }
@@ -1651,15 +1665,17 @@ public class AENApp extends Application {
 
     private void showDeleteWindow(String table) {
 
-        Dialog<Pair<String, String>> deleteDialog = new Dialog<>();
-        deleteDialog.setTitle("Delete !");
 
-        // Set the button types
-        ButtonType deleteButtonType = new ButtonType("Appliquer", ButtonBar.ButtonData.OK_DONE);
-        deleteDialog.getDialogPane().getButtonTypes().addAll(deleteButtonType, ButtonType.CANCEL);
 
-        if(table.equals("Member")){
-            // Create the username and password labels and fields
+        if (table.equals("Member")) {
+
+            Dialog<MembersEntity> deleteDialog = new Dialog<>();
+            deleteDialog.setTitle("Supprimer le membre");
+
+            // Set the button types
+            ButtonType deleteButtonType = new ButtonType("Supprimer", ButtonBar.ButtonData.OK_DONE);
+            deleteDialog.getDialogPane().getButtonTypes().addAll(deleteButtonType, ButtonType.CANCEL);
+
             GridPane grid = new GridPane();
             grid.setHgap(10);
             grid.setVgap(10);
@@ -1670,30 +1686,85 @@ public class AENApp extends Application {
             TextField nom = new TextField();
             nom.setPromptText("varchar(255)");
 
+            // Listener to populate fields based on ID
+            userid.textProperty().addListener((observable, oldValue, newValue) -> {
+                if (!newValue.isEmpty()) {
+                    try {
+                        int memberId = Integer.parseInt(newValue);
+                        MemberRepository memberRepository = context.getBean(MemberRepository.class);
+                        MembersEntity existingMember = memberRepository.findById((long) memberId).orElse(null);
 
-            // PasswordField password = new PasswordField();
-            //password.setPromptText("Nom");
+                        if (existingMember != null) {
+                            nom.setText(existingMember.getNom());
+                            //... [Set all the other fields from the existingMember object]
+                        } else {
+                            // Clear all fields if no member exists with the entered ID
+                            nom.clear();
+                            //... [Clear all the other fields]
+                        }
+
+                    } catch (NumberFormatException e) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur de format");
+                        alert.setHeaderText("L'ID du membre doit être un nombre entier");
+                        alert.setContentText(e.getMessage());
+                        alert.showAndWait();
+                    }
+                }
+            });
 
             grid.add(new Label("Member_ID:"), 0, 0);
             grid.add(userid, 1, 0);
             grid.add(new Label("Nom:"), 0, 1);
             grid.add(nom, 1, 1);
 
-
-
             deleteDialog.getDialogPane().setContent(grid);
 
             deleteDialog.setResultConverter(dialogButton -> {
                 if (dialogButton == deleteButtonType) {
-                    return new Pair<>(userid.getText(), nom.getText());
+                    // Create and return the member to delete.
+                    MembersEntity memberToDelete = new MembersEntity();
+                    memberToDelete.setId(Integer.parseInt(userid.getText()));
+                    memberToDelete.setNom(nom.getText());
+                    return memberToDelete;
                 }
                 return null;
             });
 
-            Optional<Pair<String, String>> result = deleteDialog.showAndWait();
+            Optional<MembersEntity> result = deleteDialog.showAndWait();
 
-        } else if (table.equals("Activity")){
-            // Create the username and password labels and fields
+            result.ifPresent(memberEntity -> {
+                try {
+                    MemberRepository memberRepository = context.getBean(MemberRepository.class);
+                    memberRepository.delete(memberEntity);
+                    membersTable.getItems().remove(memberEntity);
+
+                    List<MembersEntity> updatedList = (List<MembersEntity>) memberRepository.findAll();
+                    membersTable.getItems().setAll(updatedList);
+
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Membre supprimé");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Le membre a été supprimé avec succès.");
+                    alert.showAndWait();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Erreur de suppression");
+                    alert.setHeaderText("Erreur lors de la suppression du membre dans la base de données");
+                    alert.setContentText(e.getMessage());
+                    alert.showAndWait();
+                }
+            });
+        }
+        else if (table.equals("Activity")) {
+            Dialog<ActivitiesEntity> deleteDialog = new Dialog<>();
+            deleteDialog.setTitle("Supprimer l'activité");
+            ButtonType deleteButtonType = new ButtonType("Supprimer", ButtonBar.ButtonData.OK_DONE);
+            // Set the button types (vous l'avez déjà défini pour les membres, donc nous l'utiliserons ici aussi)
+            deleteDialog.getDialogPane().getButtonTypes().addAll(deleteButtonType, ButtonType.CANCEL);
+
             GridPane grid = new GridPane();
             grid.setHgap(10);
             grid.setVgap(10);
@@ -1704,9 +1775,32 @@ public class AENApp extends Application {
             TextField nom_activite = new TextField();
             nom_activite.setPromptText("varchar(255)");
 
+            // Listener pour peupler les champs en fonction de l'ID de l'activité
+            activiteid.textProperty().addListener((observable, oldValue, newValue) -> {
+                if (!newValue.isEmpty()) {
+                    try {
+                        int activityId = Integer.parseInt(newValue);
+                        ActivityRepository activityRepository = context.getBean(ActivityRepository.class);
+                        ActivitiesEntity existingActivity = activityRepository.findById((long) activityId).orElse(null);
 
-            // PasswordField password = new PasswordField();
-            //password.setPromptText("Nom");
+                        if (existingActivity != null) {
+                            nom_activite.setText(existingActivity.getNom_activite());
+                            //... [Set all the other fields from the existingActivity object if there are any]
+                        } else {
+                            // Clear the field if no activity exists with the entered ID
+                            nom_activite.clear();
+                            //... [Clear all the other fields if there are any]
+                        }
+
+                    } catch (NumberFormatException e) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur de format");
+                        alert.setHeaderText("L'ID de l'activité doit être un nombre entier");
+                        alert.setContentText(e.getMessage());
+                        alert.showAndWait();
+                    }
+                }
+            });
 
             grid.add(new Label("Activite_ID:"), 0, 0);
             grid.add(activiteid, 1, 0);
@@ -1717,51 +1811,153 @@ public class AENApp extends Application {
 
             deleteDialog.setResultConverter(dialogButton -> {
                 if (dialogButton == deleteButtonType) {
-                    return new Pair<>(activiteid.getText(), nom_activite.getText());
+                    ActivitiesEntity activityToDelete = new ActivitiesEntity();
+                    activityToDelete.setId(Integer.parseInt(activiteid.getText()));
+                    activityToDelete.setNom_activite(nom_activite.getText());
+                    return activityToDelete;
                 }
                 return null;
             });
 
-            Optional<Pair<String, String>> result = deleteDialog.showAndWait();
+            Optional<ActivitiesEntity> result = deleteDialog.showAndWait();
 
-        } else if (table.equals("Planification")){
-            // Create the username and password labels and fields
-            GridPane grid = new GridPane();
-            grid.setHgap(10);
-            grid.setVgap(10);
-            grid.setPadding(new Insets(20, 150, 10, 10));
+            result.ifPresent(activityEntity -> {
+                try {
+                    ActivityRepository activityRepository = context.getBean(ActivityRepository.class);
+                    activityRepository.delete(activityEntity);
+                    // Assuming you have an activitiesTable similar to membersTable
+                    activitiesTable.getItems().remove(activityEntity);
 
-            TextField planificationid = new TextField();
-            planificationid.setPromptText("int");
-            TextField date = new TextField();
-            date.setPromptText("datetime(6)");
+                    List<ActivitiesEntity> updatedList = (List<ActivitiesEntity>) activityRepository.findAll();
+                    activitiesTable.getItems().setAll(updatedList);
 
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Activité supprimée");
+                    alert.setHeaderText(null);
+                    alert.setContentText("L'activité a été supprimée avec succès.");
+                    alert.showAndWait();
 
-
-            // PasswordField password = new PasswordField();
-            //password.setPromptText("Nom");
-            grid.add(new Label("Planification_ID:"), 0, 0);
-            grid.add(planificationid, 1, 0);
-            grid.add(new Label("Date:"), 0, 1);
-            grid.add(date, 1, 1);
-
-
-
-
-            deleteDialog.getDialogPane().setContent(grid);
-
-
-            deleteDialog.setResultConverter(dialogButton -> {
-                if (dialogButton == deleteButtonType) {
-                    return new Pair<>(planificationid.getText(), date.getText());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Erreur de suppression");
+                    alert.setHeaderText("Erreur lors de la suppression de l'activité dans la base de données");
+                    alert.setContentText(e.getMessage());
+                    alert.showAndWait();
                 }
-                return null;
             });
 
-            Optional<Pair<String, String>> result = deleteDialog.showAndWait();
 
-        } else if (table.equals("Formation")){
-            // Create the username and password labels and fields
+
+
+
+    }
+                else if (table.equals("Planification")) {
+
+                Dialog<PlanificationEntity> deleteDialog = new Dialog<>();
+                deleteDialog.setTitle("Supprimer la planification");
+
+                // Set the button types
+                ButtonType deleteButtonType = new ButtonType("Supprimer", ButtonBar.ButtonData.OK_DONE);
+                deleteDialog.getDialogPane().getButtonTypes().addAll(deleteButtonType, ButtonType.CANCEL);
+
+                GridPane grid = new GridPane();
+                grid.setHgap(10);
+                grid.setVgap(10);
+                grid.setPadding(new Insets(20, 150, 10, 10));
+
+                TextField planificationid = new TextField();
+                planificationid.setPromptText("int");
+                TextField date = new TextField();
+                date.setPromptText("datetime(6)");
+
+                planificationid.textProperty().addListener((observable, oldValue, newValue) -> {
+                    if (!newValue.isEmpty()) {
+                        try {
+                            int planId = Integer.parseInt(newValue);
+                            PlanificationRepository planRepo = context.getBean(PlanificationRepository.class);
+                            PlanificationEntity existingPlan = planRepo.findById((long) planId).orElse(null);
+
+                            if (existingPlan != null) {
+                                date.setText(existingPlan.getDate().toString());
+                                //... [Set all the other fields from the existingPlan object]
+                            } else {
+                                date.clear();
+                                //... [Clear all the other fields]
+                            }
+
+                        } catch (NumberFormatException e) {
+                            Alert alert = new Alert(Alert.AlertType.ERROR);
+                            alert.setTitle("Erreur de format");
+                            alert.setHeaderText("L'ID de la planification doit être un nombre entier");
+                            alert.setContentText(e.getMessage());
+                            alert.showAndWait();
+                        }
+                    }
+                });
+
+                grid.add(new Label("Planification_ID:"), 0, 0);
+                grid.add(planificationid, 1, 0);
+                grid.add(new Label("Date:"), 0, 1);
+                grid.add(date, 1, 1);
+
+                deleteDialog.getDialogPane().setContent(grid);
+
+                deleteDialog.setResultConverter(dialogButton -> {
+                    if (dialogButton == deleteButtonType) {
+                        PlanificationEntity planToDelete = new PlanificationEntity();
+                        planToDelete.setId(Integer.parseInt(planificationid.getText()));
+
+                        try {
+                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                            java.util.Date parsedDate = sdf.parse(date.getText());
+                            planToDelete.setDate(parsedDate);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                        return planToDelete;
+                    }
+                    return null;
+                });
+
+                Optional<PlanificationEntity> result = deleteDialog.showAndWait();
+
+                result.ifPresent(planEntity -> {
+                    try {
+                        PlanificationRepository planRepo = context.getBean(PlanificationRepository.class);
+                        planRepo.delete(planEntity);
+                        // Assuming you have a TableView for Planification named planificationsTable
+                        planificationsTable.getItems().remove(planEntity);
+
+                        List<PlanificationEntity> updatedList = (List<PlanificationEntity>) planRepo.findAll();
+                        planificationsTable.getItems().setAll(updatedList);
+
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Planification supprimée");
+                        alert.setHeaderText(null);
+                        alert.setContentText("La planification a été supprimée avec succès.");
+                        alert.showAndWait();
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur de suppression");
+                        alert.setHeaderText("Erreur lors de la suppression de la planification dans la base de données");
+                        alert.setContentText(e.getMessage());
+                        alert.showAndWait();
+                    }
+                });
+
+
+        }
+        else if (table.equals("Formation")) {
+
+            Dialog<FormationEntity> deleteDialog = new Dialog<>();
+            deleteDialog.setTitle("Supprimer la formation");
+            ButtonType deleteButtonType = new ButtonType("Supprimer", ButtonBar.ButtonData.OK_DONE);
+            // Set the button types (re-utilisation de deleteButtonType)
+            deleteDialog.getDialogPane().getButtonTypes().addAll(deleteButtonType, ButtonType.CANCEL);
+
             GridPane grid = new GridPane();
             grid.setHgap(10);
             grid.setVgap(10);
@@ -1772,29 +1968,77 @@ public class AENApp extends Application {
             TextField nom = new TextField();
             nom.setPromptText("varchar(255)");
 
+            // Listener pour peupler les champs en fonction de l'ID de la formation
+            formationid.textProperty().addListener((observable, oldValue, newValue) -> {
+                if (!newValue.isEmpty()) {
+                    try {
+                        int formationId = Integer.parseInt(newValue);
+                        FormationRepository formationRepository = context.getBean(FormationRepository.class);
+                        FormationEntity existingFormation = formationRepository.findById((long) formationId).orElse(null);
 
+                        if (existingFormation != null) {
+                            nom.setText(existingFormation.getNom());
+                            //... [Ajoutez tous les autres champs de l'objet existingFormation si nécessaire]
+                        } else {
+                            nom.clear();
+                            //... [Effacez tous les autres champs si nécessaire]
+                        }
 
+                    } catch (NumberFormatException e) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur de format");
+                        alert.setHeaderText("L'ID de la formation doit être un nombre entier");
+                        alert.setContentText(e.getMessage());
+                        alert.showAndWait();
+                    }
+                }
+            });
 
-            // PasswordField password = new PasswordField();
-            //password.setPromptText("Nom");
             grid.add(new Label("Formation_ID:"), 0, 0);
             grid.add(formationid, 1, 0);
             grid.add(new Label("Nom:"), 0, 1);
             grid.add(nom, 1, 1);
 
-
-
-
             deleteDialog.getDialogPane().setContent(grid);
 
             deleteDialog.setResultConverter(dialogButton -> {
                 if (dialogButton == deleteButtonType) {
-                    return new Pair<>(formationid.getText(), nom.getText());
+                    // Créez et renvoyez la formation à supprimer.
+                    FormationEntity formationToDelete = new FormationEntity();
+                    formationToDelete.setId(Integer.parseInt(formationid.getText()));
+                    formationToDelete.setNom(nom.getText());
+                    return formationToDelete;
                 }
                 return null;
             });
 
-            Optional<Pair<String, String>> result = deleteDialog.showAndWait();
+            Optional<FormationEntity> result = deleteDialog.showAndWait();
+
+            result.ifPresent(formationEntity -> {
+                try {
+                    FormationRepository formationRepository = context.getBean(FormationRepository.class);
+                    formationRepository.delete(formationEntity);
+                    // Si vous avez une table des formations semblable à membersTable :
+                    formationsTable.getItems().remove(formationEntity);
+                    List<FormationEntity> updatedList = (List<FormationEntity>) formationRepository.findAll();
+                    formationsTable.getItems().setAll(updatedList);
+
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Formation supprimée");
+                    alert.setHeaderText(null);
+                    alert.setContentText("La formation a été supprimée avec succès.");
+                    alert.showAndWait();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Erreur de suppression");
+                    alert.setHeaderText("Erreur lors de la suppression de la formation dans la base de données");
+                    alert.setContentText(e.getMessage());
+                    alert.showAndWait();
+                }
+            });
+
         }
 
     }
