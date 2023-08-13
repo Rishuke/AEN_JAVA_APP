@@ -200,6 +200,15 @@ public class AENApp extends Application {
                 TableColumn<MembersEntity, Boolean> ffaadColumn = new TableColumn<>("FFA_Adhesion");
                 ffaadColumn.setCellValueFactory(new PropertyValueFactory<>("ffa_adhesion"));
 
+                TableColumn<MembersEntity, Float> cotisationtColumn = new TableColumn<>("Tarif cotisation");
+                cotisationtColumn.setCellValueFactory(cellData ->
+                        new ReadOnlyObjectWrapper<>(cellData.getValue().getCotisation_id().getTarif_cotisation()));
+
+                TableColumn<MembersEntity, Float> ffatColumn = new TableColumn<>("Tarif FFA");
+                ffatColumn.setCellValueFactory(cellData ->
+                        new ReadOnlyObjectWrapper<>(cellData.getValue().getAdhesion_id().getTarif_adhesion()));
+
+
 
 
 
@@ -315,9 +324,13 @@ public class AENApp extends Application {
                 TableColumn<PlanificationEntity, Time> timepColumn = new TableColumn<>("Heure de planification");
                 timepColumn.setCellValueFactory(new PropertyValueFactory<>("heure"));
 
+
+
                 TableColumn<PlanificationEntity, Integer> activitepColumn = new TableColumn<>("Activite");
-                activitepColumn.setCellValueFactory(cellData ->
-                        new ReadOnlyObjectWrapper<>(cellData.getValue().getActivite_id().getId()));
+                activitepColumn.setCellValueFactory(cellData -> {
+                    ActivitiesEntity activite = cellData.getValue().getActivite_id();
+                    return activite != null ? new ReadOnlyObjectWrapper<>(activite.getId()) : new ReadOnlyObjectWrapper<>(null);
+                });
 
                 TableColumn<PlanificationEntity, Integer> avionpColumn = new TableColumn<>("Avion");
                 avionpColumn.setCellValueFactory(cellData -> {
@@ -339,6 +352,12 @@ public class AENApp extends Application {
                 pilotepColumn.setCellValueFactory(cellData -> {
                     MembersEntity pilote = cellData.getValue().getPilote_id();
                     return pilote != null ? new ReadOnlyObjectWrapper<>(pilote.getId()) : new ReadOnlyObjectWrapper<>(null);
+                });
+
+                TableColumn<PlanificationEntity, Integer> formationpColumn = new TableColumn<>("Formation_ID");
+                formationpColumn.setCellValueFactory(cellData -> {
+                    FormationEntity formation = cellData.getValue().getFormation_id();
+                    return formation != null ? new ReadOnlyObjectWrapper<>(formation.getId()) : new ReadOnlyObjectWrapper<>(null);
                 });
 
                 // Use a custom cell factory to format the time
@@ -403,9 +422,9 @@ public class AENApp extends Application {
 
 
                 // Add columns to the tables
-                membersTable.getColumns().addAll(idmColumn,nomColumn, prenomColumn, emailColumn,genreColumn, datenColumn, typeColumn);
+                membersTable.getColumns().addAll(idmColumn,nomColumn, prenomColumn, emailColumn,genreColumn, datenColumn, typeColumn, cotisationColumn,ffaadColumn,cotisationtColumn,ffatColumn);
                 activitiesTable.getColumns().addAll(idaColumn,activitenomColumn, prixactiviteColumn); // add columns to new table
-                planificationsTable.getColumns().addAll(idpColumn,datepColumn,timepColumn,activitepColumn,avionpColumn,ulmpColumn,  clientpColumn,pilotepColumn);
+                planificationsTable.getColumns().addAll(idpColumn,datepColumn,timepColumn,activitepColumn,avionpColumn,ulmpColumn,  clientpColumn,pilotepColumn,formationpColumn);
                 formationsTable.getColumns().addAll(idfColumn,formationnomColumn, datedColumn, datefColumn,timeColumn/*,clientfColumn,formateurfColumn*/);
 
                 // Retrieve data and set it as table items
@@ -559,6 +578,10 @@ public class AENApp extends Application {
                     genre.setPromptText("varchar(255)");
                     TextField password = new TextField();
                     password.setPromptText("varchar(255)");
+                    TextField cotisation_id = new TextField();
+                    cotisation_id.setPromptText("int");
+                    TextField adhesion_id = new TextField();
+                    adhesion_id.setPromptText("int");
 
 
 
@@ -588,6 +611,10 @@ public class AENApp extends Application {
                     grid.add(genre, 1, 12);
                     grid.add(new Label("Password:"), 0, 13);
                     grid.add(password, 1, 13);
+                    grid.add(new Label("Tarif Cotisation ID:"), 0, 14);
+                    grid.add(cotisation_id, 1, 14);
+                    grid.add(new Label("Tarif Adhesion ID:"), 0, 15);
+                    grid.add(adhesion_id, 1, 15);
 
 
                     addDialog.getDialogPane().setContent(grid);
@@ -607,6 +634,7 @@ public class AENApp extends Application {
                     newMember.setTelephone(telephone.getText());
                     newMember.setGenre(genre.getText());
                     newMember.setPassword(password.getText());
+
 
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
                     try {
@@ -630,6 +658,33 @@ public class AENApp extends Application {
 
                     newMember.setCotisation(cotisation.getText().equals("1"));
                     newMember.setFfa_adhesion(ffa_adhesion.getText().equals("1"));
+
+                    CotisationRepository cotisationRepository = context.getBean(CotisationRepository.class);
+                    CotisationEntity cotisationEntity = cotisationRepository.findById((long) Integer.parseInt(cotisation_id.getText())).orElse(null);
+                    if (cotisationEntity == null) {
+                        // Gérer l'erreur si l'ID du client n'est pas trouvé
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur");
+                        alert.setHeaderText("Client non trouvé");
+                        alert.setContentText("L'ID du client fourni ne correspond à aucun membre.");
+                        alert.showAndWait();
+                        return null;
+                    }
+                    newMember.setCotisation_id(cotisationEntity);
+
+                    AdhesionRepository adhesionRepository = context.getBean(AdhesionRepository.class);
+                    // Récupérer l'entité membre correspondant à l'ID du pilote fourni
+                    AdhesionEntity adhesionEntity = adhesionRepository.findById((long) Integer.parseInt(adhesion_id.getText())).orElse(null);
+                    if (adhesionEntity == null) {
+                        // Gérer l'erreur si l'ID du pilote n'est pas trouvé
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur");
+                        alert.setHeaderText("Pilote non trouvé");
+                        alert.setContentText("L'ID du pilote fourni ne correspond à aucun membre.");
+                        alert.showAndWait();
+
+                    }
+                    newMember.setAdhesion_id(adhesionEntity);
 
                     return newMember;
                 }
@@ -774,6 +829,8 @@ public class AENApp extends Application {
             client_id.setPromptText("int");
             TextField pilote_id = new TextField();
             pilote_id.setPromptText("int");
+            TextField formation_id = new TextField();
+            formation_id.setPromptText("int");
 
 
 
@@ -792,12 +849,15 @@ public class AENApp extends Application {
             grid.add(client_id, 1, 6);
             grid.add(new Label("Pilote ID:"), 0, 7);
             grid.add(pilote_id, 1, 7);
+            grid.add(new Label("Formation ID:"), 0, 8);
+            grid.add(formation_id, 1, 8);
 
             addDialog.getDialogPane().setContent(grid);
 
 
             UlmRepository ulmRepository = context.getBean(UlmRepository.class);
             AvionRepository avionRepository = context.getBean(AvionRepository.class);
+            FormationRepository formationRepository = context.getBean(FormationRepository.class);
 
             addDialog.setResultConverter(dialogButton -> {
                 if (dialogButton == addButtonType) {
@@ -838,7 +898,7 @@ public class AENApp extends Application {
                         alert.setHeaderText("Activité non trouvée");
                         alert.setContentText("L'ID de l'activité fourni ne correspond à aucune activité enregistrée.");
                         alert.showAndWait();
-                        return null;
+
                     }
                     newPlanification.setActivite_id(activiteEntity);
 
@@ -895,6 +955,19 @@ public class AENApp extends Application {
 
                     }
                     newPlanification.setPilote_id(piloteEntity);
+
+                    // Récupérer l'entité formation correspondant à l'ID de la formation fourni
+                    FormationEntity formationEntity = formationRepository.findById((long) Integer.parseInt(formation_id.getText())).orElse(null);
+                    if (formationEntity == null) {
+                        // Gérer l'erreur si l'ID de la formation n'est pas trouvé
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur");
+                        alert.setHeaderText("Formation non trouvé");
+                        alert.setContentText("L'ID de la Formation fourni ne correspond à aucun membre.");
+                        alert.showAndWait();
+
+                    }
+                    newPlanification.setFormation_id(formationEntity);
 
 
                     return newPlanification;
@@ -1102,6 +1175,11 @@ public class AENApp extends Application {
             genre.setPromptText("varchar(255)");
             TextField password = new TextField();
             password.setPromptText("varchar(255)");
+            TextField cotisation_id = new TextField();
+            cotisation_id.setPromptText("int");
+            TextField adhesion_id = new TextField();
+            adhesion_id.setPromptText("int");
+
             // Listener to populate fields based on ID
             userid.textProperty().addListener((observable, oldValue, newValue) -> {
                 if (!newValue.isEmpty()) {
@@ -1126,6 +1204,8 @@ public class AENApp extends Application {
                             telephone.setText(existingMember.getTelephone());
                             genre.setText(existingMember.getGenre());
                             password.setText(existingMember.getPassword());
+                            cotisation_id.setText(String.valueOf(existingMember.getCotisation_id().getId()));
+                            adhesion_id.setText(String.valueOf(existingMember.getAdhesion_id().getId()));
 
                             //... [Set all the other fields from the existingMember object]
 
@@ -1144,6 +1224,8 @@ public class AENApp extends Application {
                             telephone.clear();
                             genre.clear();
                             password.clear();
+                            cotisation_id.clear();
+                            adhesion_id.clear();
 
                         }
 
@@ -1188,6 +1270,10 @@ public class AENApp extends Application {
             grid.add(genre, 1, 12);
             grid.add(new Label("Password:"), 0, 13);
             grid.add(password, 1, 13);
+            grid.add(new Label("Tarif Cotisation ID:"), 0, 14);
+            grid.add(cotisation_id, 1, 14);
+            grid.add(new Label("Tarif Adhesion ID:"), 0, 15);
+            grid.add(adhesion_id, 1, 15);
 
             updateDialog.getDialogPane().setContent(grid);
 
@@ -1216,6 +1302,16 @@ public class AENApp extends Application {
                     updatedMember.setTelephone(telephone.getText());
                     updatedMember.setGenre(genre.getText());
                     updatedMember.setPassword(password.getText());
+                    CotisationRepository cotisationRepository = context.getBean(CotisationRepository.class);
+                    int cotisationId = Integer.parseInt(cotisation_id.getText());
+                    CotisationEntity associatedCotisation = cotisationRepository.findById((long) cotisationId).orElse(null);
+                    updatedMember.setCotisation_id(associatedCotisation);
+                    AdhesionRepository adhesionRepository = context.getBean(AdhesionRepository.class);
+                    int adhesionId = Integer.parseInt(adhesion_id.getText());
+                    AdhesionEntity associatedAdhesion = adhesionRepository.findById((long) adhesionId).orElse(null);
+                    updatedMember.setAdhesion_id(associatedAdhesion);
+
+
 
                     return updatedMember;
                 }
@@ -1348,8 +1444,8 @@ public class AENApp extends Application {
 
 
         }
-        else if (table.equals("Planification")) {
 
+        else if (table.equals("Planification")) {
             Dialog<PlanificationEntity> updateDialog = new Dialog<>();
             updateDialog.setTitle("Update Planification!");
 
@@ -1377,9 +1473,11 @@ public class AENApp extends Application {
             client_id.setPromptText("int");
             TextField pilote_id = new TextField();
             pilote_id.setPromptText("int");
+            TextField formation_id = new TextField();
+            formation_id.setPromptText("int");
 
             planificationid.textProperty().addListener((observable, oldValue, newValue) -> {
-                if (!newValue.isEmpty()) {
+                if (!newValue.trim().isEmpty()) { // Validation pour le champ vide
                     try {
                         int id = Integer.parseInt(newValue);
                         PlanificationRepository planificationRepository = context.getBean(PlanificationRepository.class);
@@ -1389,7 +1487,13 @@ public class AENApp extends Application {
                             date.setText(existingPlanification.getDate().toString());
                             heure.setText(existingPlanification.getHeure().toString());
 
-                            activite_id.setText(String.valueOf(existingPlanification.getActivite_id().getId()));
+                            if (existingPlanification.getActivite_id() != null) {
+                                activite_id.setText(String.valueOf(existingPlanification.getActivite_id().getId()));
+                            } else {
+                                activite_id.clear();
+                            }
+
+
                             client_id.setText(String.valueOf(existingPlanification.getClient_id().getId()));
 
                             if (existingPlanification.getUlm_id() != null) {
@@ -1410,6 +1514,12 @@ public class AENApp extends Application {
                                 pilote_id.clear();
                             }
 
+                            if (existingPlanification.getFormation_id() != null) {
+                                formation_id.setText(String.valueOf(existingPlanification.getFormation_id().getId()));
+                            } else {
+                                formation_id.clear();
+                            }
+
                             System.out.println("Fetched Planification: " + existingPlanification);
                         } else {
                             date.clear();
@@ -1419,7 +1529,10 @@ public class AENApp extends Application {
                             ulm_id.clear();
                             client_id.clear();
                             pilote_id.clear();
+                            formation_id.clear();
                         }
+
+
                     } catch (NumberFormatException e) {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
                         alert.setTitle("Erreur de format");
@@ -1446,45 +1559,74 @@ public class AENApp extends Application {
             grid.add(client_id, 1, 6);
             grid.add(new Label("Pilote ID:"), 0, 7);
             grid.add(pilote_id, 1, 7);
+            grid.add(new Label("Formation ID:"), 0, 8);
+            grid.add(formation_id, 1, 8);
 
             updateDialog.getDialogPane().setContent(grid);
 
             updateDialog.setResultConverter(dialogButton -> {
                 if (dialogButton == updateButtonType) {
+                    // Vérification que tous les champs nécessaires sont remplis
+                    if (planificationid.getText().trim().isEmpty() ||
+                            date.getText().trim().isEmpty() ||
+                            heure.getText().trim().isEmpty() ||
+                            activite_id.getText().trim().isEmpty() ||
+                            avion_id.getText().trim().isEmpty() ||
+                            ulm_id.getText().trim().isEmpty() ||
+                            client_id.getText().trim().isEmpty() ||
+                            pilote_id.getText().trim().isEmpty() ||
+                            formation_id.getText().trim().isEmpty()) {
+
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur de validation");
+                        alert.setHeaderText("Tous les champs sont obligatoires");
+                        alert.showAndWait();
+                        return null; // Arrête la conversion
+                    }
+
                     PlanificationEntity updatedPlanification = new PlanificationEntity();
-                    updatedPlanification.setId(Integer.parseInt(planificationid.getText()));
                     SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
                     ActivityRepository activitiesRepository = context.getBean(ActivityRepository.class);
                     AvionRepository avionRepository = context.getBean(AvionRepository.class);
                     UlmRepository ulmRepository = context.getBean(UlmRepository.class);
                     MemberRepository memberRepository = context.getBean(MemberRepository.class);
+                    FormationRepository formationRepository = context.getBean(FormationRepository.class);
 
                     ActivitiesEntity associatedActivity = activitiesRepository.findById((long) Integer.parseInt(activite_id.getText())).orElse(null);
                     AvionEntity associatedAvion = avionRepository.findById((long) Integer.parseInt(avion_id.getText())).orElse(null);
                     UlmEntity associatedUlm = ulmRepository.findById((long) Integer.parseInt(ulm_id.getText())).orElse(null);
                     MembersEntity associatedClient = memberRepository.findById((long) Integer.parseInt(client_id.getText())).orElse(null);
                     MembersEntity associatedPilote = memberRepository.findById((long) Integer.parseInt(pilote_id.getText())).orElse(null);
+                    FormationEntity associatedFormation = formationRepository.findById((long) Integer.parseInt(formation_id.getText())).orElse(null);
 
                     try {
                         Date parsedDate = format.parse(date.getText());
                         updatedPlanification.setDate(parsedDate);
                         java.sql.Time parsedTime = java.sql.Time.valueOf(heure.getText());
                         updatedPlanification.setHeure(parsedTime);
+
+                        updatedPlanification.setId(Integer.parseInt(planificationid.getText()));
+                        updatedPlanification.setActivite_id(associatedActivity);
+                        updatedPlanification.setAvion_id(associatedAvion);
+                        updatedPlanification.setUlm_id(associatedUlm);
+                        updatedPlanification.setClient_id(associatedClient);
+                        updatedPlanification.setPilote_id(associatedPilote);
+                        updatedPlanification.setFormation_id(associatedFormation);
+
+                        return updatedPlanification;
+
                     } catch (ParseException e) {
-                        e.printStackTrace();
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur de format");
+                        alert.setHeaderText("Erreur de format de la date ou de l'heure");
+                        alert.setContentText(e.getMessage());
+                        alert.showAndWait();
                     }
-
-                    updatedPlanification.setActivite_id(associatedActivity);
-                    updatedPlanification.setAvion_id(associatedAvion);
-                    updatedPlanification.setUlm_id(associatedUlm);
-                    updatedPlanification.setClient_id(associatedClient);
-                    updatedPlanification.setPilote_id(associatedPilote);
-
-                    return updatedPlanification;
                 }
                 return null;
             });
+
 
             Optional<PlanificationEntity> result = updateDialog.showAndWait();
 
@@ -1496,15 +1638,22 @@ public class AENApp extends Application {
                     planificationService.updatePlanification(planificationEntity);
 
                     int planification = Integer.parseInt(planificationid.getText());
-                    planificationsTable.getItems().set(planification - 1, planificationEntity);
+                    if (planification <= planificationsTable.getItems().size() && planification > 0) { // Validation de l'indice
+                        planificationsTable.getItems().set(planification - 1, planificationEntity);
 
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Succès");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Planification mise à jour avec succès!");
-                    alert.showAndWait();
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Succès");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Planification mise à jour avec succès!");
+                        alert.showAndWait();
+                    } else {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur de mise à jour");
+                        alert.setHeaderText("Index hors des limites");
+                        alert.setContentText("Impossible de mettre à jour l'élément à l'index " + planification);
+                        alert.showAndWait();
+                    }
                 } catch (Exception e) {
-                    e.printStackTrace();
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setTitle("Erreur de mise à jour");
                     alert.setHeaderText("Erreur lors de la mise à jour de la planification dans la base de données");
@@ -1513,7 +1662,6 @@ public class AENApp extends Application {
                 }
             });
         }
-
 
 
 

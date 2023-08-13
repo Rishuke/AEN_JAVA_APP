@@ -52,6 +52,14 @@ public class MembersEntity {
     @Column(name="password")
     private String password;
 
+    @ManyToOne
+    @JoinColumn(name = "cotisation_id")
+    private CotisationEntity cotisation_id;
+
+    @ManyToOne
+    @JoinColumn(name = "adhesion_id")
+    private AdhesionEntity adhesion_id;
+
     public int getId() {
         return id;
     }
@@ -162,5 +170,21 @@ public class MembersEntity {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public CotisationEntity getCotisation_id() {
+        return cotisation_id;
+    }
+
+    public void setCotisation_id(CotisationEntity cotisation_id) {
+        this.cotisation_id = cotisation_id;
+    }
+
+    public AdhesionEntity getAdhesion_id() {
+        return adhesion_id;
+    }
+
+    public void setAdhesion_id(AdhesionEntity adhesion_id) {
+        this.adhesion_id = adhesion_id;
     }
 }

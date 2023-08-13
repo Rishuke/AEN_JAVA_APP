@@ -38,6 +38,10 @@ public class PlanificationEntity {
     @JoinColumn(name = "pilote_id")
     private MembersEntity pilote_id;
 
+    @ManyToOne
+    @JoinColumn(name = "formation_id")
+    private FormationEntity formation_id;
+
     public int getId() {
         return id;
     }
@@ -100,5 +104,13 @@ public class PlanificationEntity {
 
     public void setPilote_id(MembersEntity pilote_id) {
         this.pilote_id = pilote_id;
+    }
+
+    public FormationEntity getFormation_id() {
+        return formation_id;
+    }
+
+    public void setFormation_id(FormationEntity formation_id) {
+        this.formation_id = formation_id;
     }
 }
