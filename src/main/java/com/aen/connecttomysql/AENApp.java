@@ -1,7 +1,7 @@
 package com.aen.connecttomysql;
 
 
-import com.wicookin.connecttomysql.EventsEntity;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -10,6 +10,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.chart.*;
 import javafx.scene.control.*;
@@ -61,23 +62,19 @@ public class AENApp extends Application {
     private TableView<FormationEntity> formationsTable;
 
     private Chart chart1 = null;
-    private Chart chart2 = null;
+    private TableView<MembersEntity> chart2 = null;
     private Chart chart3 = null;
     private Chart chart4  = null;
     private Chart chart5 = null;
 
-    private Chart chart6 = null;
+    private TableView<ActivitiesEntity> chart6 = null;
 
-    private Chart chart7 = null;
 
-    private Chart chart8 = null;
-
-    private Chart chart9 = null;
 
     @Autowired
     private MembersService membersService;
 
-   // private  ObservableList<FormationEntity> formationData = FXCollections.observableArrayList();
+
 
     private ObservableList<MembersEntity> membersData = FXCollections.observableArrayList();
 
@@ -228,7 +225,7 @@ public class AENApp extends Application {
 
                 // Dans votre méthode start, créez un nouveau bouton pour ouvrir la fenêtre graphique
                 Button statsButton2 = new Button("Show Activities Statistics");
-                /*statsButton2.setOnAction(event -> showEventsStatisticsWindow());*/ //moooooooooooooodif
+                statsButton2.setOnAction(event -> showActivityStatisticsWindow());
 
                 Button AddButton2 = new Button("Add");
                 AddButton2.setOnAction(event -> showAddWindow("Activity"));
@@ -258,7 +255,7 @@ public class AENApp extends Application {
                 DeleteButton3.setOnAction(event -> showDeleteWindow("Planification"));
 
                 Button statsButton3 = new Button("Show Formations Statistics");
-                /*statsButton3.setOnAction(event -> showServiceStatisticsWindow());*/   // moooooooooooooooodif
+                statsButton3.setOnAction(event -> showFormationStatisticsWindow());
 
                 Button AddButton4 = new Button("Add");
                 AddButton4.setOnAction(event -> showAddWindow("Formation"));
@@ -285,7 +282,7 @@ public class AENApp extends Application {
                 VBox layout = new VBox(membersTable, buttonBox1, activitiesTable, buttonBox2, planificationsTable, buttonBox3, formationsTable, buttonBox4);
                 layout.setSpacing(10);  // Set spacing between elements in the VBox
 
-                /*exportMenuItem.setOnAction(e -> {
+               /* exportMenuItem.setOnAction(e -> {
                     PDFGenerator pdfGenerator = new PDFGenerator();
                     List<Chart> charts = Arrays.asList(chart1, chart2, chart3);
                     List<Chart> charts2 = Arrays.asList( chart6,chart4, chart7);
@@ -293,6 +290,16 @@ public class AENApp extends Application {
                     pdfGenerator.generatePDF(charts,charts2,charts3);
 
                 });*/
+
+                exportMenuItem.setOnAction(e -> {
+                    PDFGenerator pdfGenerator = new PDFGenerator();
+
+                    List<Node> charts = Arrays.asList(chart1, chart2, chart3);
+                    List<Node> charts2 = Arrays.asList(chart6, chart4);
+                    List<Node> charts3 = Arrays.asList(chart5);
+
+                    pdfGenerator.generatePDF(charts, charts2, charts3);
+                });
 
                 // Ajoutez le bouton à votre layout principal
                 mainLayout.setCenter(layout);
@@ -2196,7 +2203,7 @@ public class AENApp extends Application {
 
     private void showMemberStatisticsWindow() {
         Stage stage = new Stage();
-        stage.setTitle("Statistics");
+        stage.setTitle("Members Statistics");
 
         // Count the genders
         long maleCount = memberRepository.countByGenre("homme");
@@ -2232,12 +2239,14 @@ public class AENApp extends Application {
         pieChart.setTitle("Member Types");*/
 
         TableView<MembersEntity> memberTable = new TableView<>();
+        TableColumn<MembersEntity, Integer> idColumn = new TableColumn<>("ID");
         TableColumn<MembersEntity, String> nameColumn = new TableColumn<>("Nom");
         TableColumn<MembersEntity, String> firstnameColumn = new TableColumn<>("Prenom");
         TableColumn<MembersEntity, String> datebirthColumn = new TableColumn<>("Date_Naissance");
         TableColumn<MembersEntity, String> emailColumn = new TableColumn<>("Email");
-        TableColumn<MembersEntity, String> genreColumn = new TableColumn<>("Genre");
-        TableColumn<MembersEntity, String> typeColumn = new TableColumn<>("Type");
+        TableColumn<MembersEntity, String> telephoneColumn = new TableColumn<>("Telephone");
+        //TableColumn<MembersEntity, String> genreColumn = new TableColumn<>("Genre");
+        //TableColumn<MembersEntity, String> typeColumn = new TableColumn<>("Type");
 
 
         TableColumn<MembersEntity, Float> cotisationtColumn = new TableColumn<>("Tarif cotisation");
@@ -2248,20 +2257,23 @@ public class AENApp extends Application {
         adhesiontColumn.setCellValueFactory(cellData ->
                 new ReadOnlyObjectWrapper<>(cellData.getValue().getAdhesion_id().getTarif_adhesion()));
 
+        idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("nom"));
         firstnameColumn.setCellValueFactory(new PropertyValueFactory<>("prenom"));
         datebirthColumn.setCellValueFactory(new PropertyValueFactory<>("date_naissance"));
         emailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
-        genreColumn.setCellValueFactory(new PropertyValueFactory<>("genre"));
-        typeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
+        //telephoneColumn.setCellValueFactory(new PropertyValueFactory<>("telephone"));
+        //genreColumn.setCellValueFactory(new PropertyValueFactory<>("genre"));
+        //typeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
 
-
+        memberTable.getColumns().add(idColumn);
         memberTable.getColumns().add(nameColumn);
         memberTable.getColumns().add(firstnameColumn);
         memberTable.getColumns().add(datebirthColumn);
         memberTable.getColumns().add(emailColumn);
-        memberTable.getColumns().add(genreColumn);
-        memberTable.getColumns().add(typeColumn);
+        //memberTable.getColumns().add(telephoneColumn);
+        //memberTable.getColumns().add(genreColumn);
+        //memberTable.getColumns().add(typeColumn);
         memberTable.getColumns().add(cotisationtColumn);
         memberTable.getColumns().add(adhesiontColumn);
 
@@ -2282,22 +2294,36 @@ public class AENApp extends Application {
 
 
         chart1 = genderChart;
-        //chart2 = memberTable;
+        chart2 = memberTable;
         chart3 = barChart;
 
 
-        VBox layout = new VBox(genderChart, memberTable, barChart);
+        VBox layout = new VBox(chart1, chart2, chart3);
         layout.setSpacing(10);
 
         Scene scene = new Scene(layout, 800, 600);
         stage.setScene(scene);
         stage.show();
     }
-    /*
-    private void showEventsStatisticsWindow() {
+
+
+    private void showActivityStatisticsWindow() {
 
             Stage stage = new Stage();
-            stage.setTitle("Events Statistics");
+            stage.setTitle("Activities Statistics");
+
+            // Count the genders
+            long parachute = activityRepository.countByNom_activite("saut en parachute");
+            long bapteme = activityRepository.countByNom_activite("bapteme de l'air");
+
+            // Create gender pie chart
+            ObservableList<PieChart.Data> nameData = FXCollections.observableArrayList(
+                    new PieChart.Data("saut en parachute", parachute),
+                    new PieChart.Data("bapteme de l'air", bapteme)
+            );
+            PieChart activityChart = new PieChart(nameData);
+            activityChart.setTitle("Activities Distribution");
+/*
 
             // Count events by date
             Map<String, Long> eventCounts = StreamSupport.stream(eventRepository.findAll().spliterator(), false)
@@ -2347,12 +2373,30 @@ public class AENApp extends Application {
 
             PieChart eventTypeChart = new PieChart(eventTypeData);
             eventTypeChart.setTitle("Tasting Type");
+*/
 
-            chart4 = eventChart;
-            chart6 = eventTypeChart;
-            chart7 = eventtimeChart;
+            TableView<ActivitiesEntity> activityTable = new TableView<>();
+            TableColumn<ActivitiesEntity, Integer> idColumn = new TableColumn<>("ID");
+            TableColumn<ActivitiesEntity, String> nameColumn = new TableColumn<>("Nom_Activite");
+            TableColumn<ActivitiesEntity, Float> priceColumn = new TableColumn<>("Prix_Activite");
 
-            VBox layout = new VBox(eventChart, eventTypeChart, eventtimeChart);
+            idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+            nameColumn.setCellValueFactory(new PropertyValueFactory<>("nom_activite"));
+            priceColumn.setCellValueFactory(new PropertyValueFactory<>("prix_activite"));
+
+            activityTable.getColumns().add(idColumn);
+            activityTable.getColumns().add(nameColumn);
+            activityTable.getColumns().add(priceColumn);
+
+            ObservableList<ActivitiesEntity> activities = FXCollections.observableArrayList();
+            activityRepository.findAll().forEach(activities::add);
+            activityTable.setItems(activities);
+
+            chart4 = activityChart;
+            chart6 = activityTable;
+            //chart7 = eventtimeChart;
+
+            VBox layout = new VBox(chart4,chart6);   //, eventTypeChart, eventtimeChart);
             layout.setSpacing(10);
 
             Scene scene = new Scene(layout, 800, 600);
@@ -2366,11 +2410,11 @@ public class AENApp extends Application {
 
     }
 
-    private void showServiceStatisticsWindow() {
+    private void showFormationStatisticsWindow() {
 
         Stage stage = new Stage();
-        stage.setTitle("Service Statistics");
-
+        stage.setTitle("Formation Statistics");
+        /*
         // Count services by price
         Map<String, Long> servicePriceCounts = StreamSupport.stream(serviceRepository.findAll().spliterator(), false)
                 .collect(Collectors.groupingBy(s -> s.getPrice().toString(), Collectors.counting())); // convert Price to String
@@ -2427,17 +2471,38 @@ public class AENApp extends Application {
         serviceCounts.forEach((category, count) -> serviceSeries.getData().add(new XYChart.Data<>(category, count)));
 
         serviceChart.getData().add(serviceSeries);
+        */
 
-        chart5 = serviceChart;
-        chart8 = servicePriceChart;
-        chart9 = serviceNameChart;
+        // Count the types
+        Map<String, Long> nomCounts = StreamSupport.stream(formationRepository.findAll().spliterator(), false)
+                .collect(Collectors.groupingBy(FormationEntity::getNom, Collectors.counting()));
 
-        VBox layout = new VBox(serviceChart,servicePriceChart,serviceNameChart);
+        // Create type bar chart
+        CategoryAxis xAxis = new CategoryAxis();
+        xAxis.setLabel("Nom");
+
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Count");
+
+        BarChart<String, Number> nomChart = new BarChart<>(xAxis, yAxis);
+        nomChart.setTitle("Name Distribution");
+
+        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
+        nomCounts.forEach((nom, count) -> pieChartData.add(new PieChart.Data(nom, count)));
+
+        PieChart pieChart = new PieChart(pieChartData);
+        pieChart.setTitle("Formation Names");
+
+        chart5 = pieChart;
+        //chart8 = servicePriceChart;
+        //chart9 = serviceNameChart;
+
+        VBox layout = new VBox(chart5);  //servicePriceChart,serviceNameChart);
         layout.setSpacing(10);
 
         Scene scene = new Scene(layout, 800, 600);
         stage.setScene(scene);
         stage.show();
-    }*/
+    }
 
 }

@@ -1,6 +1,6 @@
 package com.aen.connecttomysql;
 
-import com.wicookin.connecttomysql.RoomsEntiy;
+
 import jakarta.persistence.*;
 
 @Entity
