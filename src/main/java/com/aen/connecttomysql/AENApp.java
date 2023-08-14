@@ -215,7 +215,7 @@ public class AENApp extends Application {
 
                 // Dans votre méthode start, créez un nouveau bouton pour ouvrir la fenêtre graphique
                 Button statsButton = new Button("Show Members Statistics");
-                /*statsButton3.setOnAction(event -> showServiceStatisticsWindow());*/   // moooooooooooooooodif
+                statsButton.setOnAction(event -> showMemberStatisticsWindow());
 
                 Button AddButton = new Button("Add");
                 AddButton.setOnAction(event -> showAddWindow("Member"));
@@ -2194,18 +2194,18 @@ public class AENApp extends Application {
 
     }
 
-    /*private void showStatisticsWindow() {
+    private void showMemberStatisticsWindow() {
         Stage stage = new Stage();
         stage.setTitle("Statistics");
 
         // Count the genders
-        long maleCount = memberRepository.countByGender("Male");
-        long femaleCount = memberRepository.countByGender("Female");
+        long maleCount = memberRepository.countByGenre("homme");
+        long femaleCount = memberRepository.countByGenre("femme");
 
         // Create gender pie chart
         ObservableList<PieChart.Data> genderData = FXCollections.observableArrayList(
-                new PieChart.Data("Male", maleCount),
-                new PieChart.Data("Female", femaleCount)
+                new PieChart.Data("homme", maleCount),
+                new PieChart.Data("femme", femaleCount)
         );
         PieChart genderChart = new PieChart(genderData);
         genderChart.setTitle("Gender Distribution");
@@ -2214,7 +2214,7 @@ public class AENApp extends Application {
         Map<String, Long> typeCounts = StreamSupport.stream(memberRepository.findAll().spliterator(), false)
                 .collect(Collectors.groupingBy(MembersEntity::getType, Collectors.counting()));
 
-
+        /*
         // Create type bar chart
         CategoryAxis xAxis = new CategoryAxis();
         xAxis.setLabel("Type");
@@ -2229,7 +2229,45 @@ public class AENApp extends Application {
         typeCounts.forEach((type, count) -> pieChartData.add(new PieChart.Data(type, count)));
 
         PieChart pieChart = new PieChart(pieChartData);
-        pieChart.setTitle("Member Types");
+        pieChart.setTitle("Member Types");*/
+
+        TableView<MembersEntity> memberTable = new TableView<>();
+        TableColumn<MembersEntity, String> nameColumn = new TableColumn<>("Nom");
+        TableColumn<MembersEntity, String> firstnameColumn = new TableColumn<>("Prenom");
+        TableColumn<MembersEntity, String> datebirthColumn = new TableColumn<>("Date_Naissance");
+        TableColumn<MembersEntity, String> emailColumn = new TableColumn<>("Email");
+        TableColumn<MembersEntity, String> genreColumn = new TableColumn<>("Genre");
+        TableColumn<MembersEntity, String> typeColumn = new TableColumn<>("Type");
+
+
+        TableColumn<MembersEntity, Float> cotisationtColumn = new TableColumn<>("Tarif cotisation");
+        cotisationtColumn.setCellValueFactory(cellData ->
+                new ReadOnlyObjectWrapper<>(cellData.getValue().getCotisation_id().getTarif_cotisation()));
+
+        TableColumn<MembersEntity, Float> adhesiontColumn = new TableColumn<>("Tarif FFA");
+        adhesiontColumn.setCellValueFactory(cellData ->
+                new ReadOnlyObjectWrapper<>(cellData.getValue().getAdhesion_id().getTarif_adhesion()));
+
+        nameColumn.setCellValueFactory(new PropertyValueFactory<>("nom"));
+        firstnameColumn.setCellValueFactory(new PropertyValueFactory<>("prenom"));
+        datebirthColumn.setCellValueFactory(new PropertyValueFactory<>("date_naissance"));
+        emailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
+        genreColumn.setCellValueFactory(new PropertyValueFactory<>("genre"));
+        typeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
+
+
+        memberTable.getColumns().add(nameColumn);
+        memberTable.getColumns().add(firstnameColumn);
+        memberTable.getColumns().add(datebirthColumn);
+        memberTable.getColumns().add(emailColumn);
+        memberTable.getColumns().add(genreColumn);
+        memberTable.getColumns().add(typeColumn);
+        memberTable.getColumns().add(cotisationtColumn);
+        memberTable.getColumns().add(adhesiontColumn);
+
+        ObservableList<MembersEntity> members = FXCollections.observableArrayList();
+        memberRepository.findAll().forEach(members::add);
+        memberTable.setItems(members);
 
         // Bar chart
         CategoryAxis xaxis = new CategoryAxis();
@@ -2244,18 +2282,18 @@ public class AENApp extends Application {
 
 
         chart1 = genderChart;
-        chart2 = pieChart;
+        //chart2 = memberTable;
         chart3 = barChart;
 
 
-        VBox layout = new VBox(genderChart, pieChart, barChart);
+        VBox layout = new VBox(genderChart, memberTable, barChart);
         layout.setSpacing(10);
 
         Scene scene = new Scene(layout, 800, 600);
         stage.setScene(scene);
         stage.show();
     }
-
+    /*
     private void showEventsStatisticsWindow() {
 
             Stage stage = new Stage();
