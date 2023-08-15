@@ -19,11 +19,11 @@ public class AvionEntity {
     @Column(name="type", nullable=false)
     private String type;
 
-    @Column(columnDefinition = "DECIMAL(5,2)")
-    private BigDecimal tarif_solo;
+    @Column(name = "tarif_solo", nullable = false)
+    private float tarif_solo;
 
-    @Column(columnDefinition = "DECIMAL(5,2)")
-    private BigDecimal tarif_instruction;
+    @Column(name = "tarif_instruction", nullable = false)
+    private float tarif_instruction;
 
     @Column(name="utilisation", nullable=false)
     private String utilisation;
@@ -57,19 +57,19 @@ public class AvionEntity {
         this.type = type;
     }
 
-    public BigDecimal getTarif_solo() {
+    public float getTarif_solo() {
         return tarif_solo;
     }
 
-    public void setTarif_solo(BigDecimal tarif_solo) {
+    public void setTarif_solo(float tarif_solo) {
         this.tarif_solo = tarif_solo;
     }
 
-    public BigDecimal getTarif_instruction() {
+    public float getTarif_instruction() {
         return tarif_instruction;
     }
 
-    public void setTarif_instruction(BigDecimal tarif_instruction) {
+    public void setTarif_instruction(float tarif_instruction) {
         this.tarif_instruction = tarif_instruction;
     }
 

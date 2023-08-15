@@ -26,8 +26,8 @@ public class FormationEntity {
     @Column(name="heure_fin", nullable = false)
     private Time heure_fin;
 
-
-
+    @Column(name="prix_formation", nullable = false)
+    private float prix_formation;
 
     public int getId() {
         return id;
@@ -77,5 +77,11 @@ public class FormationEntity {
         this.heure_fin = heure_fin;
     }
 
+    public float getPrix_formation() {
+        return prix_formation;
+    }
 
+    public void setPrix_formation(float prix_formation) {
+        this.prix_formation = prix_formation;
+    }
 }

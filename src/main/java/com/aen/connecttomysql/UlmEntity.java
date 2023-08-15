@@ -16,8 +16,8 @@ public class UlmEntity {
     @Column(name="nom", nullable=false)
     private String nom;
 
-    @Column(columnDefinition = "DECIMAL(5,2)")
-    private BigDecimal tarif;
+    @Column(name = "tarif", nullable = false)
+    private float tarif;
 
     @Column(name="date_ouverture", nullable = false)
     private Date date_ouverture;
@@ -41,11 +41,11 @@ public class UlmEntity {
         this.nom = nom;
     }
 
-    public BigDecimal getTarif() {
+    public float getTarif() {
         return tarif;
     }
 
-    public void setTarif(BigDecimal tarif) {
+    public void setTarif(float tarif) {
         this.tarif = tarif;
     }
 

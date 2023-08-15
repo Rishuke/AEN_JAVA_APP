@@ -69,6 +69,13 @@ public class AENApp extends Application {
 
     private TableView<ActivitiesEntity> chart6 = null;
 
+    private TableView<AvionEntity> chart7 = null;
+
+    private TableView<UlmEntity> chart10 = null;
+
+    private TableView<FormationEntity> chart8 = null;
+
+    private TableView<PlanificationEntity> chart9 = null;
 
 
     @Autowired
@@ -295,8 +302,8 @@ public class AENApp extends Application {
                     PDFGenerator pdfGenerator = new PDFGenerator();
 
                     List<Node> charts = Arrays.asList(chart1, chart2, chart3);
-                    List<Node> charts2 = Arrays.asList(chart6, chart4);
-                    List<Node> charts3 = Arrays.asList(chart5);
+                    List<Node> charts2 = Arrays.asList(chart6,chart7,chart10);
+                    List<Node> charts3 = Arrays.asList(chart5,chart8,chart9);
 
                     pdfGenerator.generatePDF(charts, charts2, charts3);
                 });
@@ -333,38 +340,39 @@ public class AENApp extends Application {
 
 
 
-                TableColumn<PlanificationEntity, Integer> activitepColumn = new TableColumn<>("Activite");
+                TableColumn<PlanificationEntity, String> activitepColumn = new TableColumn<>("Activite");
                 activitepColumn.setCellValueFactory(cellData -> {
                     ActivitiesEntity activite = cellData.getValue().getActivite_id();
-                    return activite != null ? new ReadOnlyObjectWrapper<>(activite.getId()) : new ReadOnlyObjectWrapper<>(null);
+                    return activite != null ? new ReadOnlyObjectWrapper<>(activite.getNom_activite()) : new ReadOnlyObjectWrapper<>(null);
                 });
 
-                TableColumn<PlanificationEntity, Integer> avionpColumn = new TableColumn<>("Avion");
+
+                TableColumn<PlanificationEntity, String> avionpColumn = new TableColumn<>("Avion");
                 avionpColumn.setCellValueFactory(cellData -> {
                     AvionEntity avion = cellData.getValue().getAvion_id();
-                    return avion != null ? new ReadOnlyObjectWrapper<>(avion.getId()) : new ReadOnlyObjectWrapper<>(null);
+                    return avion != null ? new ReadOnlyObjectWrapper<>(avion.getNom()) : new ReadOnlyObjectWrapper<>(null);
                 });
 
-                TableColumn<PlanificationEntity, Integer> ulmpColumn = new TableColumn<>("Ulm");
+                TableColumn<PlanificationEntity, String> ulmpColumn = new TableColumn<>("Ulm");
                 ulmpColumn.setCellValueFactory(cellData -> {
                     UlmEntity ulm = cellData.getValue().getUlm_id();
-                    return ulm != null ? new ReadOnlyObjectWrapper<>(ulm.getId()) : new ReadOnlyObjectWrapper<>(null);
+                    return ulm != null ? new ReadOnlyObjectWrapper<>(ulm.getNom()) : new ReadOnlyObjectWrapper<>(null);
                 });
 
-                TableColumn<PlanificationEntity, Integer> clientpColumn = new TableColumn<>("Client_ID");
+                TableColumn<PlanificationEntity, String> clientpColumn = new TableColumn<>("Client_ID");
                 clientpColumn.setCellValueFactory(cellData ->
-                        new ReadOnlyObjectWrapper<>(cellData.getValue().getClient_id().getId()));
+                        new ReadOnlyObjectWrapper<>(cellData.getValue().getClient_id().getPrenom()));
 
-                TableColumn<PlanificationEntity, Integer> pilotepColumn = new TableColumn<>("Pilote_ID");
+                TableColumn<PlanificationEntity, String> pilotepColumn = new TableColumn<>("Pilote_ID");
                 pilotepColumn.setCellValueFactory(cellData -> {
                     MembersEntity pilote = cellData.getValue().getPilote_id();
-                    return pilote != null ? new ReadOnlyObjectWrapper<>(pilote.getId()) : new ReadOnlyObjectWrapper<>(null);
+                    return pilote != null ? new ReadOnlyObjectWrapper<>(pilote.getPrenom()) : new ReadOnlyObjectWrapper<>(null);
                 });
 
-                TableColumn<PlanificationEntity, Integer> formationpColumn = new TableColumn<>("Formation_ID");
+                TableColumn<PlanificationEntity, String> formationpColumn = new TableColumn<>("Formation_ID");
                 formationpColumn.setCellValueFactory(cellData -> {
                     FormationEntity formation = cellData.getValue().getFormation_id();
-                    return formation != null ? new ReadOnlyObjectWrapper<>(formation.getId()) : new ReadOnlyObjectWrapper<>(null);
+                    return formation != null ? new ReadOnlyObjectWrapper<>(formation.getNom()) : new ReadOnlyObjectWrapper<>(null);
                 });
 
                 // Use a custom cell factory to format the time
@@ -377,7 +385,7 @@ public class AENApp extends Application {
                             if (item == null || empty) {
                                 setText(null);
                             } else {
-                                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSSSSS");
+                                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
                                 setText(sdf.format(item));
                             }
                         }
@@ -401,6 +409,12 @@ public class AENApp extends Application {
                 TableColumn<FormationEntity, Time> timeColumn = new TableColumn<>("Heure de début");
                 timeColumn.setCellValueFactory(new PropertyValueFactory<>("heure_debut"));
 
+                TableColumn<FormationEntity, Time> timefColumn = new TableColumn<>("Heure de fin");
+                timefColumn.setCellValueFactory(new PropertyValueFactory<>("heure_fin"));
+
+                TableColumn<FormationEntity, Float> prixformationColumn = new TableColumn<>("Prix de la formation");
+                prixformationColumn.setCellValueFactory(new PropertyValueFactory<>("prix_formation"));
+
                 /*TableColumn<FormationEntity, Integer> clientfColumn = new TableColumn<>("Client_ID");
                 clientfColumn.setCellValueFactory(cellData ->
                         new ReadOnlyObjectWrapper<>(cellData.getValue().getClient_id().getId()));
@@ -419,7 +433,23 @@ public class AENApp extends Application {
                             if (item == null || empty) {
                                 setText(null);
                             } else {
-                                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSSSSS");
+                                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+                                setText(sdf.format(item));
+                            }
+                        }
+                    };
+                });
+
+                timefColumn.setCellFactory(column -> {
+                    return new TableCell<FormationEntity, Time>() {
+                        @Override
+                        protected void updateItem(Time item, boolean empty) {
+                            super.updateItem(item, empty);
+
+                            if (item == null || empty) {
+                                setText(null);
+                            } else {
+                                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
                                 setText(sdf.format(item));
                             }
                         }
@@ -432,7 +462,7 @@ public class AENApp extends Application {
                 membersTable.getColumns().addAll(idmColumn,nomColumn, prenomColumn, emailColumn,genreColumn, datenColumn, typeColumn, cotisationColumn,ffaadColumn,cotisationtColumn,ffatColumn);
                 activitiesTable.getColumns().addAll(idaColumn,activitenomColumn, prixactiviteColumn); // add columns to new table
                 planificationsTable.getColumns().addAll(idpColumn,datepColumn,timepColumn,activitepColumn,avionpColumn,ulmpColumn,  clientpColumn,pilotepColumn,formationpColumn);
-                formationsTable.getColumns().addAll(idfColumn,formationnomColumn, datedColumn, datefColumn,timeColumn/*,clientfColumn,formateurfColumn*/);
+                formationsTable.getColumns().addAll(idfColumn,formationnomColumn, datedColumn, datefColumn,timeColumn,timefColumn,prixformationColumn/*,clientfColumn,formateurfColumn*/);
 
                 // Retrieve data and set it as table items
                 Platform.runLater(() -> {
@@ -1036,10 +1066,9 @@ public class AENApp extends Application {
             heure_debut.setPromptText("time(6)");
             TextField heure_fin = new TextField();
             heure_fin.setPromptText("time(6)");
-            TextField client_id = new TextField();
-            client_id.setPromptText("int");
-            TextField formateur_id = new TextField();
-            formateur_id.setPromptText("int");
+            TextField prix_formation = new TextField();
+            prix_formation.setPromptText("float");
+
 
 
 
@@ -1054,10 +1083,9 @@ public class AENApp extends Application {
             grid.add(heure_debut, 1, 4);
             grid.add(new Label("Heure Fin:"), 0, 5);
             grid.add(heure_fin, 1, 5);
-            grid.add(new Label("Client ID:"), 0, 6);
-            grid.add(client_id, 1, 6);
-            grid.add(new Label("Formateur ID:"), 0, 7);
-            grid.add(formateur_id, 1, 7);
+            grid.add(new Label("Prix de la Formation:"), 0, 6);
+            grid.add(prix_formation, 1, 6);
+
 
             addDialog.getDialogPane().setContent(grid);
 
@@ -1098,6 +1126,7 @@ public class AENApp extends Application {
                         java.sql.Time sqlTime2 = new java.sql.Time(parsed2.getTime());
                         newFormation.setHeure_debut(sqlTime);
                         newFormation.setHeure_fin(sqlTime2);
+                        newFormation.setPrix_formation(Float.parseFloat(prix_formation.getText()));
                     } catch (ParseException e) {
                         e.printStackTrace();
 
@@ -1696,6 +1725,8 @@ public class AENApp extends Application {
             heure_debut.setPromptText("time(6)");
             TextField heure_fin = new TextField();
             heure_fin.setPromptText("time(6)");
+            TextField prix_formation = new TextField();
+            prix_formation.setPromptText("float");
 
             // Listener to populate fields based on formationid
             formationid.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -1713,6 +1744,7 @@ public class AENApp extends Application {
                             date_fin.setText(new SimpleDateFormat("yyyy-MM-dd").format(existingFormation.getDate_fin()));
                             heure_debut.setText(new SimpleDateFormat("HH:mm:ss").format(existingFormation.getHeure_debut()));
                             heure_fin.setText(new SimpleDateFormat("HH:mm:ss").format(existingFormation.getHeure_fin()));
+                            prix_formation.setText(String.valueOf(existingFormation.getPrix_formation()));
 
 
 
@@ -1724,6 +1756,7 @@ public class AENApp extends Application {
                             date_fin.clear();
                             heure_debut.clear();
                             heure_fin.clear();
+                            prix_formation.clear();
 
                         }
                     } catch (NumberFormatException e) {
@@ -1748,6 +1781,8 @@ public class AENApp extends Application {
             grid.add(heure_debut, 1, 4);
             grid.add(new Label("Heure Fin:"), 0, 5);
             grid.add(heure_fin, 1, 5);
+            grid.add(new Label("Prix de la Formation:"), 0, 6);
+            grid.add(prix_formation, 1, 6);
 
 
             updateDialog.getDialogPane().setContent(grid);
@@ -1775,12 +1810,14 @@ public class AENApp extends Application {
                         updatedFormation.setHeure_debut(parsedHeureDebut);
                         updatedFormation.setHeure_fin(parsedHeureFin);
 
+
                     } catch (ParseException e) {
                         e.printStackTrace();
                         // Ideally, handle this exception more gracefully.
                     }
 
                     updatedFormation.setNom(nom.getText());
+                    updatedFormation.setPrix_formation(Float.parseFloat(prix_formation.getText()));
 
 
                     return updatedFormation;
@@ -2392,11 +2429,80 @@ public class AENApp extends Application {
             activityRepository.findAll().forEach(activities::add);
             activityTable.setItems(activities);
 
+            TableView<AvionEntity> avionTable = new TableView<>();
+            TableColumn<AvionEntity, Integer> idaColumn = new TableColumn<>("ID");
+            TableColumn<AvionEntity, String> nameaColumn = new TableColumn<>("Nom_Avion");
+            TableColumn<AvionEntity, String> typeaColumn = new TableColumn<>("Type_Avion");
+            TableColumn<AvionEntity, Float> pricesoloColumn = new TableColumn<>("Tarif Solo");
+            TableColumn<AvionEntity, Float> priceinstructColumn = new TableColumn<>("Tarif Instruction");
+            TableColumn<AvionEntity, String> utilisationaColumn = new TableColumn<>("Utilisation");
+
+            TableColumn<AvionEntity, String> dateoColumn = new TableColumn<>("Date_Ouverture");
+            dateoColumn.setCellValueFactory(new PropertyValueFactory<>("date_ouverture"));
+
+            TableColumn<AvionEntity, String> datefColumn = new TableColumn<>("Date_Fermeture");
+            datefColumn.setCellValueFactory(new PropertyValueFactory<>("date_fermeture"));
+
+            idaColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+            nameaColumn.setCellValueFactory(new PropertyValueFactory<>("nom"));
+            typeaColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
+            pricesoloColumn.setCellValueFactory(new PropertyValueFactory<>("tarif_solo"));
+            priceinstructColumn.setCellValueFactory(new PropertyValueFactory<>("tarif_instruction"));
+            utilisationaColumn.setCellValueFactory(new PropertyValueFactory<>("utilisation"));
+
+
+
+            avionTable.getColumns().add(idaColumn);
+            avionTable.getColumns().add(nameaColumn);
+            avionTable.getColumns().add(typeaColumn);
+            avionTable.getColumns().add(pricesoloColumn);
+            avionTable.getColumns().add(priceinstructColumn);
+            avionTable.getColumns().add(utilisationaColumn);
+            avionTable.getColumns().add(dateoColumn);
+            avionTable.getColumns().add(datefColumn);
+
+            AvionRepository avionRepository = context.getBean(AvionRepository.class);
+            ObservableList<AvionEntity> avions = FXCollections.observableArrayList();
+            avionRepository.findAll().forEach(avions::add);
+            avionTable.setItems(avions);
+
+            TableView<UlmEntity> ulmTable = new TableView<>();
+            TableColumn<UlmEntity, Integer> iduColumn = new TableColumn<>("ID");
+            TableColumn<UlmEntity, String> nameuColumn = new TableColumn<>("Nom_Ulm");
+            TableColumn<UlmEntity, Float> tarifColumn = new TableColumn<>("Tarif");
+
+            TableColumn<UlmEntity, String> dateouColumn = new TableColumn<>("Date_Ouverture");
+            dateouColumn.setCellValueFactory(new PropertyValueFactory<>("date_ouverture"));
+
+            TableColumn<UlmEntity, String> datefuColumn = new TableColumn<>("Date_Fermeture");
+            datefuColumn.setCellValueFactory(new PropertyValueFactory<>("date_fermeture"));
+
+            iduColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+            nameuColumn.setCellValueFactory(new PropertyValueFactory<>("nom"));
+
+            tarifColumn.setCellValueFactory(new PropertyValueFactory<>("tarif"));
+
+
+
+
+
+            ulmTable.getColumns().add(iduColumn);
+            ulmTable.getColumns().add(nameuColumn);
+            ulmTable.getColumns().add(tarifColumn);
+            ulmTable.getColumns().add(dateouColumn);
+            ulmTable.getColumns().add(datefuColumn);
+
+            UlmRepository ulmRepository = context.getBean(UlmRepository.class);
+            ObservableList<UlmEntity> ulms = FXCollections.observableArrayList();
+            ulmRepository.findAll().forEach(ulms::add);
+            ulmTable.setItems(ulms);
+
             chart4 = activityChart;
             chart6 = activityTable;
-            //chart7 = eventtimeChart;
+            chart7 = avionTable;
+            chart10 = ulmTable;
 
-            VBox layout = new VBox(chart4,chart6);   //, eventTypeChart, eventtimeChart);
+            VBox layout = new VBox(chart6,chart7,chart10);   //, eventTypeChart, eventtimeChart);
             layout.setSpacing(10);
 
             Scene scene = new Scene(layout, 800, 600);
@@ -2414,64 +2520,7 @@ public class AENApp extends Application {
 
         Stage stage = new Stage();
         stage.setTitle("Formation Statistics");
-        /*
-        // Count services by price
-        Map<String, Long> servicePriceCounts = StreamSupport.stream(serviceRepository.findAll().spliterator(), false)
-                .collect(Collectors.groupingBy(s -> s.getPrice().toString(), Collectors.counting())); // convert Price to String
 
-        // Count services by name
-        Map<String, Long> serviceNameCounts = StreamSupport.stream(serviceRepository.findAll().spliterator(), false)
-                .collect(Collectors.groupingBy(s -> s.getName().toString(), Collectors.counting())); // convert Name to String
-
-        // Count services by category
-        Map<String, Long> serviceCounts = StreamSupport.stream(serviceRepository.findAll().spliterator(), false)
-                .collect(Collectors.groupingBy(s -> s.getCategory_id().getName(), Collectors.counting()));
-
-        // Create service count bar chart
-        CategoryAxis servicexaxis = new CategoryAxis();
-        servicexaxis.setLabel("Price");
-
-        NumberAxis serviceyaxis = new NumberAxis();
-        serviceyaxis.setLabel("Name Count");
-
-        BarChart<String, Number> serviceNameChart = new BarChart<>(servicexaxis, serviceyaxis);
-        serviceNameChart.setTitle("Services by Name");
-
-        XYChart.Series<String, Number> serviceNameSeries = new XYChart.Series<>();
-        serviceNameCounts.forEach((name, count) -> serviceNameSeries.getData().add(new XYChart.Data<>(name, count)));
-
-        serviceNameChart.getData().add(serviceNameSeries);
-
-        // Create service count bar chart
-        CategoryAxis serviceXaxis = new CategoryAxis();
-        serviceXaxis.setLabel("Price");
-
-        NumberAxis serviceYaxis = new NumberAxis();
-        serviceYaxis.setLabel("Price Count");
-
-        BarChart<String, Number> servicePriceChart = new BarChart<>(serviceXaxis, serviceYaxis);
-        servicePriceChart.setTitle("Services by Price");
-
-        XYChart.Series<String, Number> servicePriceSeries = new XYChart.Series<>();
-        servicePriceCounts.forEach((price, count) -> servicePriceSeries.getData().add(new XYChart.Data<>(price, count)));
-
-        servicePriceChart.getData().add(servicePriceSeries);
-
-        // Create service count bar chart
-        CategoryAxis serviceXAxis = new CategoryAxis();
-        serviceXAxis.setLabel("Category");
-
-        NumberAxis serviceYAxis = new NumberAxis();
-        serviceYAxis.setLabel("Service Count");
-
-        BarChart<String, Number> serviceChart = new BarChart<>(serviceXAxis, serviceYAxis);
-        serviceChart.setTitle("Services by Category");
-
-        XYChart.Series<String, Number> serviceSeries = new XYChart.Series<>();
-        serviceCounts.forEach((category, count) -> serviceSeries.getData().add(new XYChart.Data<>(category, count)));
-
-        serviceChart.getData().add(serviceSeries);
-        */
 
         // Count the types
         Map<String, Long> nomCounts = StreamSupport.stream(formationRepository.findAll().spliterator(), false)
@@ -2493,11 +2542,156 @@ public class AENApp extends Application {
         PieChart pieChart = new PieChart(pieChartData);
         pieChart.setTitle("Formation Names");
 
-        chart5 = pieChart;
-        //chart8 = servicePriceChart;
-        //chart9 = serviceNameChart;
+        TableView<FormationEntity> formationTable = new TableView<>();
+        TableColumn<FormationEntity, Integer> idColumn = new TableColumn<>("ID");
+        TableColumn<FormationEntity, String> nameColumn = new TableColumn<>("Nom_Formation");
+        TableColumn<FormationEntity, Float> priceColumn = new TableColumn<>("Prix_Activite");
 
-        VBox layout = new VBox(chart5);  //servicePriceChart,serviceNameChart);
+        TableColumn<FormationEntity, String> datedColumn = new TableColumn<>("Date_Debut");
+        datedColumn.setCellValueFactory(new PropertyValueFactory<>("date_debut"));
+
+        TableColumn<FormationEntity, String> datefColumn = new TableColumn<>("Date_Fin");
+        datefColumn.setCellValueFactory(new PropertyValueFactory<>("date_fin"));
+
+        TableColumn<FormationEntity, Time> timeColumn = new TableColumn<>("Heure de début");
+        timeColumn.setCellValueFactory(new PropertyValueFactory<>("heure_debut"));
+
+        TableColumn<FormationEntity, Time> timefColumn = new TableColumn<>("Heure de fin");
+        timefColumn.setCellValueFactory(new PropertyValueFactory<>("heure_fin"));
+
+        timeColumn.setCellFactory(column -> {
+            return new TableCell<FormationEntity, Time>() {
+                @Override
+                protected void updateItem(Time item, boolean empty) {
+                    super.updateItem(item, empty);
+
+                    if (item == null || empty) {
+                        setText(null);
+                    } else {
+                        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+                        setText(sdf.format(item));
+                    }
+                }
+            };
+        });
+
+        timefColumn.setCellFactory(column -> {
+            return new TableCell<FormationEntity, Time>() {
+                @Override
+                protected void updateItem(Time item, boolean empty) {
+                    super.updateItem(item, empty);
+
+                    if (item == null || empty) {
+                        setText(null);
+                    } else {
+                        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+                        setText(sdf.format(item));
+                    }
+                }
+            };
+        });
+
+        idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+        nameColumn.setCellValueFactory(new PropertyValueFactory<>("nom"));
+        priceColumn.setCellValueFactory(new PropertyValueFactory<>("prix_formation"));
+
+        formationTable.getColumns().add(idColumn);
+        formationTable.getColumns().add(nameColumn);
+        formationTable.getColumns().add(priceColumn);
+        formationTable.getColumns().add(datedColumn);
+        formationTable.getColumns().add(datefColumn);
+        formationTable.getColumns().add(timeColumn);
+        formationTable.getColumns().add(timefColumn);
+
+        ObservableList<FormationEntity> formations = FXCollections.observableArrayList();
+        formationRepository.findAll().forEach(formations::add);
+        formationTable.setItems(formations);
+
+
+        TableView<PlanificationEntity> planificationTable = new TableView<>();
+
+        TableColumn<PlanificationEntity, Integer> idpColumn = new TableColumn<>("Planification_ID");
+        idpColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+
+        TableColumn<PlanificationEntity, String> datepColumn = new TableColumn<>("Date de planification");
+        datepColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
+
+        TableColumn<PlanificationEntity, Time> timepColumn = new TableColumn<>("Heure de planification");
+        timepColumn.setCellValueFactory(new PropertyValueFactory<>("heure"));
+
+
+
+        TableColumn<PlanificationEntity, String> activitepColumn = new TableColumn<>("Activite");
+        activitepColumn.setCellValueFactory(cellData -> {
+            ActivitiesEntity activite = cellData.getValue().getActivite_id();
+            return activite != null ? new ReadOnlyObjectWrapper<>(activite.getNom_activite()) : new ReadOnlyObjectWrapper<>(null);
+        });
+
+
+        TableColumn<PlanificationEntity, String> avionpColumn = new TableColumn<>("Avion");
+        avionpColumn.setCellValueFactory(cellData -> {
+            AvionEntity avion = cellData.getValue().getAvion_id();
+            return avion != null ? new ReadOnlyObjectWrapper<>(avion.getNom()) : new ReadOnlyObjectWrapper<>(null);
+        });
+
+        TableColumn<PlanificationEntity, String> ulmpColumn = new TableColumn<>("Ulm");
+        ulmpColumn.setCellValueFactory(cellData -> {
+            UlmEntity ulm = cellData.getValue().getUlm_id();
+            return ulm != null ? new ReadOnlyObjectWrapper<>(ulm.getNom()) : new ReadOnlyObjectWrapper<>(null);
+        });
+
+        TableColumn<PlanificationEntity, String> clientpColumn = new TableColumn<>("Client_ID");
+        clientpColumn.setCellValueFactory(cellData ->
+                new ReadOnlyObjectWrapper<>(cellData.getValue().getClient_id().getPrenom()));
+
+        TableColumn<PlanificationEntity, String> pilotepColumn = new TableColumn<>("Pilote_ID");
+        pilotepColumn.setCellValueFactory(cellData -> {
+            MembersEntity pilote = cellData.getValue().getPilote_id();
+            return pilote != null ? new ReadOnlyObjectWrapper<>(pilote.getPrenom()) : new ReadOnlyObjectWrapper<>(null);
+        });
+
+        TableColumn<PlanificationEntity, String> formationpColumn = new TableColumn<>("Formation_ID");
+        formationpColumn.setCellValueFactory(cellData -> {
+            FormationEntity formation = cellData.getValue().getFormation_id();
+            return formation != null ? new ReadOnlyObjectWrapper<>(formation.getNom()) : new ReadOnlyObjectWrapper<>(null);
+        });
+
+        // Use a custom cell factory to format the time
+        timepColumn.setCellFactory(column -> {
+            return new TableCell<PlanificationEntity, Time>() {
+                @Override
+                protected void updateItem(Time item, boolean empty) {
+                    super.updateItem(item, empty);
+
+                    if (item == null || empty) {
+                        setText(null);
+                    } else {
+                        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+                        setText(sdf.format(item));
+                    }
+                }
+            };
+        });
+
+        planificationTable.getColumns().add(idpColumn);
+        planificationTable.getColumns().add(activitepColumn);
+        planificationTable.getColumns().add(avionpColumn);
+        planificationTable.getColumns().add(ulmpColumn);
+        planificationTable.getColumns().add(clientpColumn);
+        planificationTable.getColumns().add(pilotepColumn);
+        planificationTable.getColumns().add(formationpColumn);
+        planificationTable.getColumns().add(datepColumn);
+        planificationTable.getColumns().add(timepColumn);
+
+        ObservableList<PlanificationEntity> planifications = FXCollections.observableArrayList();
+        planificationRepository.findAll().forEach(planifications::add);
+        planificationTable.setItems(planifications);
+
+        chart5 = pieChart;
+        chart8 = formationTable;
+        chart9 = planificationTable;
+
+        VBox layout = new VBox(chart5,chart8,chart9);  //servicePriceChart,serviceNameChart);
         layout.setSpacing(10);
 
         Scene scene = new Scene(layout, 800, 600);
