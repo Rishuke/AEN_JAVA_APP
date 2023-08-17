@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 
 
 @Entity
-@Table(name = "chapitre")
+@Table(name = "quiz")
 public class ChapterEntity {
     @Id
     @Column(name = "id")
@@ -14,8 +14,8 @@ public class ChapterEntity {
     @Column(name="titre", nullable=false)
     private String titre;
 
-    @Column(name="contenu", nullable=false)
-    private String contenu;
+    @Column(name="score_passage", nullable=false)
+    private int score_passage;
 
     @ManyToOne
     @JoinColumn(name = "formation_id")
@@ -37,12 +37,12 @@ public class ChapterEntity {
         this.titre = titre;
     }
 
-    public String getContenu() {
-        return contenu;
+    public int getScore_passage() {
+        return score_passage;
     }
 
-    public void setContenu(String contenu) {
-        this.contenu = contenu;
+    public void setScore_passage(int score_passage) {
+        this.score_passage = score_passage;
     }
 
     public FormationEntity getFormation_id() {
