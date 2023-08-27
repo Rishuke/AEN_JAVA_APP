@@ -27,8 +27,8 @@ public class PlanificationEntity {
     @JoinColumn(name = "avion_id")
     private AvionEntity avion_id;
     @ManyToOne
-    @JoinColumn(name = "ulm_id")
-    private UlmEntity ulm_id;
+    @JoinColumn(name = "locationulm_id")
+    private LocationUlmEntity locationulm_id;
 
     @ManyToOne
     @JoinColumn(name = "client_id")
@@ -82,12 +82,12 @@ public class PlanificationEntity {
         this.avion_id = avion_id;
     }
 
-    public UlmEntity getUlm_id() {
-        return ulm_id;
+    public LocationUlmEntity getLocationulm_id() {
+        return locationulm_id;
     }
 
-    public void setUlm_id(UlmEntity ulm_id) {
-        this.ulm_id = ulm_id;
+    public void setLocationulm_id(LocationUlmEntity locationulm_id) {
+        this.locationulm_id = locationulm_id;
     }
 
     public MembersEntity getClient_id() {

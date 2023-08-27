@@ -355,9 +355,16 @@ public class AENApp extends Application {
 
                 TableColumn<PlanificationEntity, String> ulmpColumn = new TableColumn<>("Ulm");
                 ulmpColumn.setCellValueFactory(cellData -> {
-                    UlmEntity ulm = cellData.getValue().getUlm_id();
-                    return ulm != null ? new ReadOnlyObjectWrapper<>(ulm.getNom()) : new ReadOnlyObjectWrapper<>(null);
+                    try {
+                        LocationUlmEntity ulm = cellData.getValue().getLocationulm_id();
+                        System.out.println("Ulm: " + ulm);  // Ajout d'une sortie de log pour le debug
+                        return ulm != null ? new ReadOnlyObjectWrapper<>(ulm.getUlm_id().getNom()) : new ReadOnlyObjectWrapper<>(null);
+                    } catch (Exception e) {
+                        e.printStackTrace();  // Log l'exception pour le debug
+                        return new ReadOnlyObjectWrapper<>(null);
+                    }
                 });
+
 
                 TableColumn<PlanificationEntity, String> clientpColumn = new TableColumn<>("Client_ID");
                 clientpColumn.setCellValueFactory(cellData ->
@@ -895,11 +902,11 @@ public class AENApp extends Application {
             UlmRepository ulmRepository = context.getBean(UlmRepository.class);
             AvionRepository avionRepository = context.getBean(AvionRepository.class);
             FormationRepository formationRepository = context.getBean(FormationRepository.class);
+            LocationUlmRepository locationulmRepository = context.getBean(LocationUlmRepository.class);
 
             addDialog.setResultConverter(dialogButton -> {
                 if (dialogButton == addButtonType) {
                     PlanificationEntity newPlanification = new PlanificationEntity();
-
 
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
                     try {
@@ -912,6 +919,18 @@ public class AENApp extends Application {
                         alert.setTitle("Erreur de format");
                         alert.setHeaderText("Le format de la date est incorrect");
                         alert.setContentText("Veuillez entrer la date au format YYYY-MM-DD");
+                        alert.showAndWait();
+                        return null;
+                    }
+
+                    // Vérification des doublons de dates
+                    PlanificationRepository planificationRepository = context.getBean(PlanificationRepository.class);
+                    PlanificationEntity existingPlanification = planificationRepository.findByDate(newPlanification.getDate());
+                    if (existingPlanification != null) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur de doublon");
+                        alert.setHeaderText("La date est déjà planifiée");
+                        alert.setContentText("Veuillez choisir une autre date ou vérifier la liste des planifications");
                         alert.showAndWait();
                         return null;
                     }
@@ -955,8 +974,8 @@ public class AENApp extends Application {
                     }
 
                     // Récupérer l'entité ULM correspondant à l'ID de l'ULM fourni
-                    UlmEntity ulmEntity = ulmRepository.findById((long) Integer.parseInt(ulm_id.getText())).orElse(null);
-                    newPlanification.setUlm_id(ulmEntity);
+                    LocationUlmEntity ulmEntity = locationulmRepository.findById((long) Integer.parseInt(ulm_id.getText())).orElse(null);
+                    newPlanification.setLocationulm_id(ulmEntity);
                     if (ulmEntity == null) {
                         // Gérer l'erreur si l'ID de l'ULM n'est pas trouvé
                         Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -1532,8 +1551,8 @@ public class AENApp extends Application {
 
                             client_id.setText(String.valueOf(existingPlanification.getClient_id().getId()));
 
-                            if (existingPlanification.getUlm_id() != null) {
-                                ulm_id.setText(String.valueOf(existingPlanification.getUlm_id().getId()));
+                            if (existingPlanification.getLocationulm_id().getUlm_id() != null) {
+                                ulm_id.setText(String.valueOf(existingPlanification.getLocationulm_id().getUlm_id().getId()));
                             } else {
                                 ulm_id.clear();
                             }
@@ -1626,26 +1645,38 @@ public class AENApp extends Application {
                     ActivityRepository activitiesRepository = context.getBean(ActivityRepository.class);
                     AvionRepository avionRepository = context.getBean(AvionRepository.class);
                     UlmRepository ulmRepository = context.getBean(UlmRepository.class);
+                    LocationUlmRepository locationUlmRepository = context.getBean(LocationUlmRepository.class);
                     MemberRepository memberRepository = context.getBean(MemberRepository.class);
                     FormationRepository formationRepository = context.getBean(FormationRepository.class);
 
                     ActivitiesEntity associatedActivity = activitiesRepository.findById((long) Integer.parseInt(activite_id.getText())).orElse(null);
                     AvionEntity associatedAvion = avionRepository.findById((long) Integer.parseInt(avion_id.getText())).orElse(null);
-                    UlmEntity associatedUlm = ulmRepository.findById((long) Integer.parseInt(ulm_id.getText())).orElse(null);
+                    //UlmEntity associatedUlm = ulmRepository.findById((long) Integer.parseInt(ulm_id.getText())).orElse(null);
+                    LocationUlmEntity associatedUlm = locationUlmRepository.findById((long) Integer.parseInt(ulm_id.getText())).orElse(null);
                     MembersEntity associatedClient = memberRepository.findById((long) Integer.parseInt(client_id.getText())).orElse(null);
                     MembersEntity associatedPilote = memberRepository.findById((long) Integer.parseInt(pilote_id.getText())).orElse(null);
                     FormationEntity associatedFormation = formationRepository.findById((long) Integer.parseInt(formation_id.getText())).orElse(null);
 
                     try {
                         Date parsedDate = format.parse(date.getText());
-                        updatedPlanification.setDate(parsedDate);
                         java.sql.Time parsedTime = java.sql.Time.valueOf(heure.getText());
-                        updatedPlanification.setHeure(parsedTime);
+
+                        PlanificationRepository planificationRepository = context.getBean(PlanificationRepository.class);
+                        PlanificationEntity existingPlanification = planificationRepository.findByDate(parsedDate);
+
+                        if (existingPlanification != null && existingPlanification.getId() != Integer.parseInt(planificationid.getText())){
+                            Alert alert = new Alert(Alert.AlertType.ERROR);
+                            alert.setTitle("Erreur de doublon");
+                            alert.setHeaderText("La date est déjà planifiée");
+                            alert.setContentText("Veuillez choisir une autre date ou vérifier la liste des planifications");
+                            alert.showAndWait();
+                            return null; // Arrête la conversion
+                        }
 
                         updatedPlanification.setId(Integer.parseInt(planificationid.getText()));
                         updatedPlanification.setActivite_id(associatedActivity);
                         updatedPlanification.setAvion_id(associatedAvion);
-                        updatedPlanification.setUlm_id(associatedUlm);
+                        updatedPlanification.setLocationulm_id(associatedUlm);
                         updatedPlanification.setClient_id(associatedClient);
                         updatedPlanification.setPilote_id(associatedPilote);
                         updatedPlanification.setFormation_id(associatedFormation);
@@ -2636,8 +2667,8 @@ public class AENApp extends Application {
 
         TableColumn<PlanificationEntity, String> ulmpColumn = new TableColumn<>("Ulm");
         ulmpColumn.setCellValueFactory(cellData -> {
-            UlmEntity ulm = cellData.getValue().getUlm_id();
-            return ulm != null ? new ReadOnlyObjectWrapper<>(ulm.getNom()) : new ReadOnlyObjectWrapper<>(null);
+            LocationUlmEntity ulm = cellData.getValue().getLocationulm_id();
+            return ulm != null ? new ReadOnlyObjectWrapper<>(ulm.getUlm_id().getNom()) : new ReadOnlyObjectWrapper<>(null);
         });
 
         TableColumn<PlanificationEntity, String> clientpColumn = new TableColumn<>("Client_ID");
