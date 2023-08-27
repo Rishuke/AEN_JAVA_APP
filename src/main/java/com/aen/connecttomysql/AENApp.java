@@ -1672,7 +1672,8 @@ public class AENApp extends Application {
                             alert.showAndWait();
                             return null; // Arrête la conversion
                         }
-
+                        updatedPlanification.setDate(parsedDate);
+                        updatedPlanification.setHeure(parsedTime);
                         updatedPlanification.setId(Integer.parseInt(planificationid.getText()));
                         updatedPlanification.setActivite_id(associatedActivity);
                         updatedPlanification.setAvion_id(associatedAvion);
