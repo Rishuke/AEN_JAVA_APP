@@ -620,7 +620,7 @@ public class AENApp extends Application {
                     telephone.setPromptText("varchar(255)");
                     TextField genre = new TextField();
                     genre.setPromptText("varchar(255)");
-                    TextField password = new TextField();
+                    TextField password = new PasswordField();
                     password.setPromptText("varchar(255)");
                     TextField cotisation_id = new TextField();
                     cotisation_id.setPromptText("int");
@@ -668,6 +668,19 @@ public class AENApp extends Application {
             // Convert the result to a MembersEntity when the button is clicked
             addDialog.setResultConverter(dialogButton -> {
                 if (dialogButton == addButtonType) {
+
+                    // Vérifiez si l'e-mail existe déjà
+                    MemberRepository memberRepository = context.getBean(MemberRepository.class);
+                    MembersEntity existingMember = memberRepository.findByEmail(email.getText());
+                    if (existingMember != null) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur");
+                        alert.setHeaderText("E-mail déjà utilisé");
+                        alert.setContentText("Un membre avec cet e-mail existe déjà.");
+                        alert.showAndWait();
+                        return null;  // Cette ligne retourne null, ce qui signifie que rien ne se passe si un membre avec cet e-mail existe déjà
+                    }
+
                     MembersEntity newMember = new MembersEntity();
                     //newMember.setId(Integer.parseInt(userid.getText()));
                     newMember.setNom(nom.getText());
@@ -1228,7 +1241,7 @@ public class AENApp extends Application {
             telephone.setPromptText("varchar(255)");
             TextField genre = new TextField();
             genre.setPromptText("varchar(255)");
-            TextField password = new TextField();
+            TextField password = new PasswordField();
             password.setPromptText("varchar(255)");
             TextField cotisation_id = new TextField();
             cotisation_id.setPromptText("int");
@@ -1334,12 +1347,25 @@ public class AENApp extends Application {
 
             updateDialog.setResultConverter(dialogButton -> {
                 if (dialogButton == updateButtonType) {
-                    MembersEntity updatedMember;
+
                     int memberId = Integer.parseInt(userid.getText());
                     MemberRepository memberRepository = context.getBean(MemberRepository.class);
-                    updatedMember = memberRepository.findById((long) memberId).orElse(new MembersEntity());
+
 
                     LocalDate localDateValue = LocalDate.parse(date_naissance.getText());
+                    MembersEntity existingMemberWithEmail = memberRepository.findByEmail(email.getText());
+
+                    if (existingMemberWithEmail != null && existingMemberWithEmail.getId() != memberId) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur");
+                        alert.setHeaderText("E-mail déjà utilisé");
+                        alert.setContentText("Un autre membre avec cet e-mail existe déjà.");
+                        alert.showAndWait();
+                        return null; // Aucune mise à jour ne sera effectuée
+                    }
+
+                    MembersEntity updatedMember;
+                    updatedMember = memberRepository.findById((long) memberId).orElse(new MembersEntity());
                     java.util.Date utilDate = java.sql.Date.valueOf(localDateValue);
 
 
